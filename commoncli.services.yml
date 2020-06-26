@@ -1,0 +1,47 @@
+services:
+  http_client_factory.acsf:
+    class: Acquia\Console\Acsf\Client\AcsfClientFactory
+    public: true
+    arguments: ['@console.logger']
+
+  #  Platforms
+  platform.acquia.acsf:
+    class: Acquia\Console\Acsf\EventSubscriber\Platform\PlatformSubscriberACSF
+    tags:
+      - { name: kernel.event_subscriber }
+  factory.platform.acsf:
+    class: Acquia\Console\Acsf\Platform\Factory\ACSFPlatformFactory
+    arguments: ['@http_client_factory.acquia_cloud', '@http_client_factory.acsf', '@platform.storage']
+    public: true
+
+  #  Commands
+  command.acsf.initialize:
+    class: Acquia\Console\Acsf\Command\AcsfInitialize
+    public: true
+    arguments: ['@event_dispatcher']
+    tags:
+      - { name: common_console_command }
+  command.acsf.backup_list:
+    class: Acquia\Console\Acsf\Command\AcsfDatabaseBackupList
+    public: true
+    arguments: ['@event_dispatcher']
+    tags:
+      - { name: common_console_command }
+  command.acsf.backup_create:
+    class: Acquia\Console\Acsf\Command\AcsfDatabaseBackupCreate
+    public: true
+    arguments: ['@event_dispatcher']
+    tags:
+      - { name: common_console_command }
+  command.acsf.backup_restore:
+    class: Acquia\Console\Acsf\Command\AcsfDatabaseBackupRestore
+    public: true
+    arguments: ['@event_dispatcher']
+    tags:
+      - { name: common_console_command }
+  command.acsf.backup_delete:
+    class: Acquia\Console\Acsf\Command\AcsfDatabaseBackupDelete
+    public: true
+    arguments: ['@event_dispatcher']
+    tags:
+      - { name: common_console_command }
