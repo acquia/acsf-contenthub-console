@@ -45,3 +45,16 @@ services:
     arguments: ['@event_dispatcher']
     tags:
       - { name: common_console_command }
+  command.acsf.cron_list:
+    class: Acquia\Console\Acsf\Command\AcsfCronList
+    public: true
+    arguments: ['@event_dispatcher']
+    tags:
+      - { name: common_console_command }
+  command.acsf.cron_create:
+    class: Acquia\Console\Acsf\Command\AcsfCronCreate
+    public: true
+    arguments: ['@event_dispatcher']
+    tags:
+      - { name: common_console_command }
+
