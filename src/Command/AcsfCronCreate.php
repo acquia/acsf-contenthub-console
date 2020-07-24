@@ -32,7 +32,7 @@ class AcsfCronCreate extends AcquiaCloudCronCreate {
    */
   public function configure() {
     $this->setDescription('Create cron jobs for queues.');
-    $this->setAliases(['acsf-cq']);
+    $this->setAliases(['acsf-cc']);
   }
 
   /**
@@ -46,13 +46,14 @@ class AcsfCronCreate extends AcquiaCloudCronCreate {
    * {@inheritdoc}
    */
   protected function getSiteInfo(): array {
-    $sites = $this->platform->get('acquia.acsf.sites');
-    $site_info = [];
+    $sites = $this->platform->getPlatformSites();
+    $env_uuid = $this->platform->get('acquia.cloud.environment.name');
 
-    foreach ($sites as $site) {
+    $site_info = [];
+    foreach ($sites as $domain => $site) {
       $site_info[] = [
-        'active_domain' => $site['domain'],
-        'env_uuid' => $this->platform->get('acquia.cloud.environment.name'),
+        'active_domain' => $domain,
+        'env_uuid' => $env_uuid,
       ];
     }
 
