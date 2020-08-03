@@ -45,7 +45,6 @@ class PlatformSubscriberACSF implements EventSubscriberInterface {
   public function onGetPlatformType(GetPlatformTypeEvent $event) {
     if ($event->getPlatformType() === ACSFPlatform::getPlatformId()) {
       $event->addClass(ACSFPlatform::class);
-      $event->addFactory('factory.platform.acsf');
       $event->stopPropagation();
     }
   }

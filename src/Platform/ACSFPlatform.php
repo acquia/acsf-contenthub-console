@@ -14,6 +14,7 @@ use Consolidation\Config\ConfigInterface;
 use EclipseGc\CommonConsole\Platform\PlatformBase;
 use EclipseGc\CommonConsole\Platform\PlatformSitesInterface;
 use EclipseGc\CommonConsole\Platform\PlatformStorage;
+use EclipseGc\CommonConsole\PlatformDependencyInjectionInterface;
 use EclipseGc\CommonConsole\ProcessRunner;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Exception\LogicException;
@@ -21,6 +22,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Question\Question;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Process\Process;
 
 /**
@@ -28,7 +30,7 @@ use Symfony\Component\Process\Process;
  *
  * @package Acquia\Console\Acsf\Platform
  */
-class ACSFPlatform extends PlatformBase implements PlatformSitesInterface {
+class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, PlatformDependencyInjectionInterface {
 
   const PLATFORM_NAME = "Acquia Cloud Site Factory";
 
@@ -56,6 +58,19 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface {
     parent::__construct($config, $runner, $storage);
     $this->aceFactory = $aceFactory;
     $this->acsfFactory = $acsfFactory;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public static function create(ContainerInterface $container, ConfigInterface $config, ProcessRunner $runner, PlatformStorage $storage): PlatformDependencyInjectionInterface {
+    return new static(
+      $config,
+      $runner,
+      $storage,
+      $container->get('http_client_factory.acquia_cloud'),
+      $container->get('http_client_factory.acsf')
+    );
   }
 
   /**

@@ -9,10 +9,6 @@ services:
     class: Acquia\Console\Acsf\EventSubscriber\Platform\PlatformSubscriberACSF
     tags:
       - { name: kernel.event_subscriber }
-  factory.platform.acsf:
-    class: Acquia\Console\Acsf\Platform\Factory\ACSFPlatformFactory
-    arguments: ['@http_client_factory.acquia_cloud', '@http_client_factory.acsf', '@platform.storage']
-    public: true
 
   #  Commands
   command.acsf.initialize:
