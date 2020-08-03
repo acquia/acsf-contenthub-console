@@ -11,12 +11,6 @@ services:
       - { name: kernel.event_subscriber }
 
   #  Commands
-  command.acsf.initialize:
-    class: Acquia\Console\Acsf\Command\AcsfInitialize
-    public: true
-    arguments: ['@event_dispatcher']
-    tags:
-      - { name: common_console_command }
   command.acsf.backup_list:
     class: Acquia\Console\Acsf\Command\AcsfDatabaseBackupList
     public: true
