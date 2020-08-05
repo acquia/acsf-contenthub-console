@@ -11,6 +11,7 @@ use AcquiaCloudApi\Endpoints\Applications;
 use AcquiaCloudApi\Endpoints\Environments;
 use Consolidation\Config\Config;
 use Consolidation\Config\ConfigInterface;
+use EclipseGc\CommonConsole\Event\Traits\PlatformArgumentInjectionTrait;
 use EclipseGc\CommonConsole\Platform\PlatformBase;
 use EclipseGc\CommonConsole\Platform\PlatformSitesInterface;
 use EclipseGc\CommonConsole\Platform\PlatformStorage;
@@ -24,6 +25,7 @@ use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Question\Question;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Process\Process;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Class AcquiaCloudPlatform
@@ -31,6 +33,8 @@ use Symfony\Component\Process\Process;
  * @package Acquia\Console\Acsf\Platform
  */
 class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, PlatformDependencyInjectionInterface {
+
+  use PlatformArgumentInjectionTrait;
 
   const PLATFORM_NAME = "Acquia Cloud Site Factory";
 
@@ -54,10 +58,35 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
    */
   protected $acsfFactory;
 
-  public function __construct(ConfigInterface $config, ProcessRunner $runner, PlatformStorage $storage, AcquiaCloudClientFactory $aceFactory, AcsfClientFactory $acsfFactory) {
+  /**
+   * ACSFPlatform constructor.
+   *
+   * @param \Consolidation\Config\ConfigInterface $config
+   *   The configuration object.
+   * @param \EclipseGc\CommonConsole\ProcessRunner $runner
+   *   The process runner service.
+   * @param \EclipseGc\CommonConsole\Platform\PlatformStorage $storage
+   *   The platform storage service.
+   * @param \Acquia\Console\Cloud\Client\AcquiaCloudClientFactory $aceFactory
+   *   The Acquia Cloud client factory service.
+   * @param \Acquia\Console\Acsf\Client\AcsfClientFactory $acsfFactory
+   *   The Acquia Cloud Site Factory client factory service
+   * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $dispatcher
+   *   The event dispatcher service.
+   */
+  public function __construct(
+    ConfigInterface $config,
+    ProcessRunner $runner,
+    PlatformStorage $storage,
+    AcquiaCloudClientFactory $aceFactory,
+    AcsfClientFactory $acsfFactory,
+    EventDispatcherInterface $dispatcher
+  ) {
     parent::__construct($config, $runner, $storage);
+
     $this->aceFactory = $aceFactory;
     $this->acsfFactory = $acsfFactory;
+    $this->dispatcher = $dispatcher;
   }
 
   /**
@@ -69,7 +98,8 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
       $runner,
       $storage,
       $container->get('http_client_factory.acquia_cloud'),
-      $container->get('http_client_factory.acsf')
+      $container->get('http_client_factory.acsf'),
+      $container->get('event_dispatcher')
     );
   }
 
@@ -160,20 +190,30 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
     [, $url] = explode('@', $sshUrl);
     [$application] = explode('.', $url);
     $output->writeln(sprintf("Attempting to execute requested command in environment: %s", $environment->uuid));
-    // If the local command specifies a uri to run against, just run that one site.
-    // @todo check that the uri option is in the available sites.
+    $commands = [];
     if ($input->hasOption('uri') && $uri = $input->getOption('uri')) {
+      if (!$this->isValidUri($uri)) {
+        $output->writeln("<error>The provided uri '$uri' was invalid. There's no such acsf site.</error>");
+        return;
+      }
       $commands[] = "echo " . sprintf("Attempting to execute requested command for site: %s", $uri);
       $commands[] = "./vendor/bin/commoncli {$input->__toString()}";
     }
     else {
-      // @todo don't expect to get data.
-      $sites = json_decode($acsfClient->get('sites')->getBody());
-      foreach ($sites->sites as $site) {
-        $commands[] = "echo " . sprintf("Attempting to execute requested command for site: %s", $site->domain);
-        $commands[] = "./vendor/bin/commoncli {$input->__toString()} --uri={$site->domain}";
+      $sites = $acsfClient->listSites();
+      if (!$sites) {
+        $output->writeln('<warning>No sites available. Exiting...</warning>');
+        return;
+      }
+
+      $sites = array_column($sites, 'domain');
+      $args = $this->dispatchPlatformArgumentInjectionEvent($input, $sites, $command);
+      foreach ($sites as $site) {
+        $commands[] = "echo " . sprintf("Attempting to execute requested command for site: %s", $site);
+        $commands[] = "./vendor/bin/commoncli {$args[$site]->__toString()} --uri={$site}";
       }
     }
+
     if ($commands) {
       $commands = implode("; ", $commands);
       $process = Process::fromShellCommandline("ssh $sshUrl 'cd /var/www/html/$application; $commands'");
@@ -219,6 +259,20 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
       $sites[$site['domain']] = [$site['domain'], static::getPlatformId()];
     }
     return $sites;
+  }
+
+  /**
+   * Compares the provided uri with the acsf site list.
+   *
+   * @param string $uri
+   *   The uri to check.
+   *
+   * @return bool
+   *   TRUE if the uri is valid and exists within the current platform.
+   */
+  protected function isValidUri(string $uri): bool {
+    $sites = $this->getAcsfClient()->listSites();
+    return in_array($uri, $sites, TRUE);
   }
 
 }
