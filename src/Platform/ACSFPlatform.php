@@ -181,7 +181,7 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
   /**
    * {@inheritdoc}
    */
-  public function execute(Command $command, InputInterface $input, OutputInterface $output) : void {
+  public function execute(Command $command, InputInterface $input, OutputInterface $output) : int {
     $aceClient = $this->getAceClient();
     $acsfClient = $this->getAcsfClient();
     $environments = new Environments($aceClient);
@@ -194,7 +194,7 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
     if ($input->hasOption('uri') && $uri = $input->getOption('uri')) {
       if (!$this->isValidUri($uri)) {
         $output->writeln("<error>The provided uri '$uri' was invalid. There's no such acsf site.</error>");
-        return;
+        return 1;
       }
       $commands[] = "echo " . sprintf("Attempting to execute requested command for site: %s", $uri);
       $commands[] = "./vendor/bin/commoncli {$input->__toString()}";
@@ -203,7 +203,7 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
       $sites = $acsfClient->listSites();
       if (!$sites) {
         $output->writeln('<warning>No sites available. Exiting...</warning>');
-        return;
+        return 2;
       }
 
       $sites = array_column($sites, 'domain');
@@ -217,8 +217,10 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
     if ($commands) {
       $commands = implode("; ", $commands);
       $process = Process::fromShellCommandline("ssh $sshUrl 'cd /var/www/html/$application; $commands'");
-      $this->runner->run($process, $this, $output);
+      return $this->runner->run($process, $this, $output);
     }
+    // If no commands were passed, then exit without errors.
+    return 0;
   }
 
   /**

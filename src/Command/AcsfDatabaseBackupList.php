@@ -23,7 +23,7 @@ class AcsfDatabaseBackupList extends AcsfCommandBase {
    * {@inheritdoc}
    */
   protected function configure(): void {
-    $this->setDescription('List database backup for Acsf sites.');
+    $this->setDescription('List database backups for ACSF sites.');
   }
 
   /**

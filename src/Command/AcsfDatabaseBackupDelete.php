@@ -23,7 +23,7 @@ class AcsfDatabaseBackupDelete extends AcsfCommandBase {
    * {@inheritdoc}
    */
   protected function configure(): void {
-    $this->setDescription('Delete database backup of an Acsf site');
+    $this->setDescription('Delete database backup of an ACSF site');
   }
 
   /**
@@ -69,8 +69,8 @@ class AcsfDatabaseBackupDelete extends AcsfCommandBase {
       return 4;
     }
 
-    $output->writeln("Request sent to Acsf for deletion of backup: <comment>$db_to_delete</comment>. Backups deletion take several minutes to complete.");
-    $output->writeln('You can check your backups on Acsf or using this CLI tool. (acsf:backup:list)');
+    $output->writeln("Request sent to ACSF for deletion of backup: <comment>$db_to_delete</comment>. Backups deletion take several minutes to complete.");
+    $output->writeln('You can check your backups on ACSF or using this CLI tool. (acsf:backup:list)');
 
     return 0;
   }

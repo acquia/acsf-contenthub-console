@@ -23,7 +23,7 @@ class AcsfDatabaseBackupRestore extends AcsfCommandBase {
    * {@inheritdoc}
    */
   protected function configure(): void {
-    $this->setDescription('Restore database backup for Acsf site.');
+    $this->setDescription('Restore database backups for ACSF sites.');
   }
 
   /**
@@ -36,7 +36,7 @@ class AcsfDatabaseBackupRestore extends AcsfCommandBase {
     }
 
     do {
-      $output->writeln('You are about to restore one of your Acsf site database');
+      $output->writeln('You are about to restore one of your ACSF site\'s database');
       $helper = $this->getHelper('question');
 
       $quest_site = new ChoiceQuestion('Pick on which site you want to perform this operation:', $sites);
