@@ -196,8 +196,9 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
         $output->writeln("<error>The provided uri '$uri' was invalid. There's no such acsf site.</error>");
         return 1;
       }
-      $commands[] = "echo " . sprintf("Attempting to execute requested command for site: %s", $uri);
-      $commands[] = "./vendor/bin/commoncli {$input->__toString()}";
+      $sites = [
+        $uri
+      ];
     }
     else {
       $sites = $acsfClient->listSites();
@@ -205,13 +206,13 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
         $output->writeln('<warning>No sites available. Exiting...</warning>');
         return 2;
       }
-
       $sites = array_column($sites, 'domain');
-      $args = $this->dispatchPlatformArgumentInjectionEvent($input, $sites, $command);
-      foreach ($sites as $site) {
-        $commands[] = "echo " . sprintf("Attempting to execute requested command for site: %s", $site);
-        $commands[] = "./vendor/bin/commoncli {$args[$site]->__toString()} --uri={$site}";
-      }
+    }
+
+    $args = $this->dispatchPlatformArgumentInjectionEvent($input, $sites, $command);
+    foreach ($sites as $site) {
+      $commands[] = "echo " . sprintf("Attempting to execute requested command for site: %s", $site);
+      $commands[] = "./vendor/bin/commoncli {$args[$site]->__toString()}";
     }
 
     if ($commands) {
@@ -274,7 +275,8 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
    */
   protected function isValidUri(string $uri): bool {
     $sites = $this->getAcsfClient()->listSites();
-    return in_array($uri, $sites, TRUE);
+    $sites_uri = array_column($sites, 'domain');
+    return in_array($uri, $sites_uri, TRUE);
   }
 
 }
