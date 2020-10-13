@@ -259,7 +259,9 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
   public function getPlatformSites(): array {
     $sites = [];
     foreach ($this->getAcsfClient()->listSites() as $site) {
-      $sites[$site['domain']] = [$site['domain'], static::getPlatformId()];
+      $sites[$site['domain']] = [
+        'uri' => $site['domain'],
+        'platform_id' => static::getPlatformId()];
     }
     return $sites;
   }
