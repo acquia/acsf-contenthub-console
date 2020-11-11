@@ -45,8 +45,10 @@ class AcsfDatabaseBackupRestoreTest extends AcsfDatabaseTestBase {
     ];
     $restore_backup_command->addPlatform('test', $this->getPlatform($args));
 
-    $output = $this->doRunCommand($restore_backup_command, [1, 1, 'yes'], ['alias' => '@test']);
-    $this->assertStringContainsString('Do you want to restore site: test-1 from backup: backup_test_label?', $output);
+    /** @var \Symfony\Component\Console\Tester\CommandTester $command_tester */
+    $command_tester = $this->doRunCommand($restore_backup_command, [1, 1, 'yes'], ['alias' => '@test']);
+    $this->assertStringContainsString('Do you want to restore site: test-1 from backup: backup_test_label?', $command_tester->getDisplay());
+    $this->assertEquals(0, $command_tester->getStatusCode());
   }
 
   /**

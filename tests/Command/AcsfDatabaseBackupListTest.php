@@ -42,8 +42,10 @@ class AcsfDatabaseBackupListTest extends AcsfDatabaseTestBase {
     ];
     $backup_list_command->addPlatform('test', $this->getPlatform($args));
 
-    $output = $this->doRunCommand($backup_list_command, [1], ['alias' => 'test']);
-    $this->assertStringContainsString('backup_test_label', $output);
+    /** @var \Symfony\Component\Console\Tester\CommandTester $command_tester */
+    $command_tester = $this->doRunCommand($backup_list_command, [1], ['alias' => 'test']);
+    $this->assertStringContainsString('backup_test_label', $command_tester->getDisplay());
+    $this->assertEquals(0, $command_tester->getStatusCode());
   }
 
   /**

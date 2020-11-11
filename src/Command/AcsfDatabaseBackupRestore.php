@@ -46,7 +46,7 @@ class AcsfDatabaseBackupRestore extends AcsfCommandBase {
       $backups = $this->acsfClient->getBackupsBySiteId($site_id);
       if (empty($backups)) {
         $output->writeln('No database backups found.');
-        return 1;
+        return 2;
       }
 
       $backup_list = [];
@@ -64,8 +64,8 @@ class AcsfDatabaseBackupRestore extends AcsfCommandBase {
 
     $exit_code = $this->restoreSiteFromBackup($site_id, $backup_id);
 
-    if ($exit_code !== 0) {
-      return $exit_code;
+    if (!$exit_code) {
+      return 3;
     }
 
     $output->writeln('Restore backups can take several minutes to complete for small websites, but larger websites can take much longer to complete.');

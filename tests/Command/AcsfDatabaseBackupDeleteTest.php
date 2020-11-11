@@ -45,8 +45,10 @@ class AcsfDatabaseBackupDeleteTest extends AcsfDatabaseTestBase {
     ];
     $delete_backup_command->addPlatform('test', $this->getPlatform($args));
 
-    $output = $this->doRunCommand($delete_backup_command, [1, 1, 'yes'], ['alias' => 'test']);
-    $this->assertStringContainsString('Do you want to delete backup: backup_test_label?', $output);
+    /** @var \Symfony\Component\Console\Tester\CommandTester $command_tester */
+    $command_tester = $this->doRunCommand($delete_backup_command, [1, 1, 'yes'], ['alias' => 'test']);
+    $this->assertStringContainsString('Do you want to delete backup: backup_test_label?', $command_tester->getDisplay());
+    $this->assertEquals(0, $command_tester->getStatusCode());
   }
 
   /**

@@ -46,8 +46,10 @@ class AcsfDatabaseBackupCreateTest extends AcsfDatabaseTestBase {
     ];
     $backup_create_command->addPlatform('test', $this->getPlatform($args));
 
-    $output = $this->doRunCommand($backup_create_command, [1, 'yes'], ['alias' => 'test']);
-    $this->assertStringContainsString('Backups can take several minutes to complete for small websites', $output);
+    /** @var \Symfony\Component\Console\Tester\CommandTester $command_tester */
+    $command_tester = $this->doRunCommand($backup_create_command, [1, 'yes'], ['alias' => 'test']);
+    $this->assertStringContainsString('Backups can take several minutes to complete for small websites', $command_tester->getDisplay());
+    $this->assertEquals(0, $command_tester->getStatusCode());
   }
 
   /**
