@@ -33,7 +33,7 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
    */
   protected function execute(InputInterface $input, OutputInterface $output): int {
     if (!$sites = $this->getAcsfSites()) {
-      $output->writeln('No sites found.');
+      $output->writeln('<error>No sites found.</error>');
       return 1;
     }
 
@@ -42,7 +42,7 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
       foreach ($sites as $site_id => $site) {
         $output->writeln("Create database backup for site: $site...");
         if (!$this->createAcsfSiteBackup($site_id, $site)) {
-          $output->writeln('Failed to queue task for creating db backup.');
+          $output->writeln('<error>Failed to queue task for creating db backup.</error>');
           return 2;
         }
       }
@@ -62,7 +62,7 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
       $site_id = array_search($site, $sites, TRUE);
 
       if (!$this->createAcsfSiteBackup($site_id, $site)) {
-        $output->writeln('Failed to queue task for creating db backup.');
+        $output->writeln('<error>Failed to queue task for creating db backup.</error>');
         return 2;
       }
     }
