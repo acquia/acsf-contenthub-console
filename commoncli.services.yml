@@ -11,6 +11,12 @@ services:
       - { name: kernel.event_subscriber }
 
   #  Commands
+  command.acsf.backup.create:
+    class: Acquia\Console\Acsf\Command\Backups\AcsfBackupCreate
+    public: true
+    arguments: ['@event_dispatcher', '@config.storage']
+    tags:
+      - { name: common_console_command }
   command.acsf.backup_list:
     class: Acquia\Console\Acsf\Command\AcsfDatabaseBackupList
     public: true

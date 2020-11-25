@@ -24,6 +24,7 @@ class AcsfDatabaseBackupRestore extends AcsfCommandBase {
    */
   protected function configure(): void {
     $this->setDescription('Restore database backups for ACSF sites.');
+    $this->setAliases(['acsf-dbr']);
   }
 
   /**

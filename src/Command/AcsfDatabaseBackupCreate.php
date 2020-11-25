@@ -2,6 +2,8 @@
 
 namespace Acquia\Console\Acsf\Command;
 
+use Acquia\Console\Acsf\Client\ResponseHandlerTrait;
+use Acquia\Console\ContentHub\Command\Helpers\PlatformCmdOutputFormatterTrait;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -15,6 +17,9 @@ use Symfony\Component\Console\Question\ConfirmationQuestion;
  */
 class AcsfDatabaseBackupCreate extends AcsfCommandBase {
 
+  use PlatformCmdOutputFormatterTrait;
+  use ResponseHandlerTrait;
+
   /**
    * {@inheritdoc}
    */
@@ -25,7 +30,10 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
    */
   protected function configure(): void {
     $this->setDescription('Create database backup for each one of your ACSF sites.');
+    $this->setAliases(['acsf-dbc']);
     $this->addOption('all', 'a', InputOption::VALUE_NONE, 'Perform backups for all sites in the platform.');
+    $this->addOption('wait', 'w', InputOption::VALUE_REQUIRED, 'Provide time (seconds) how long should we monitor task if completed or not.');
+    $this->addOption('silent', 's', InputOption::VALUE_NONE, 'Returns list, but does not send it to the output.');
   }
 
   /**
@@ -37,17 +45,7 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
       return 1;
     }
 
-    if ($input->hasOption('all') && $input->getOption('all')) {
-      $output->writeln('You are about to create site backups for all your ACSF sites.');
-      foreach ($sites as $site_id => $site) {
-        $output->writeln("Create database backup for site: $site...");
-        if (!$this->createAcsfSiteBackup($site_id, $site)) {
-          $output->writeln('<error>Failed to queue task for creating db backup.</error>');
-          return 2;
-        }
-      }
-    }
-    else {
+    if (!$input->getOption('all') && !$input->getOption('silent')) {
       do {
         $output->writeln('You are about to create a site backup for one of your ACSF sties.');
         $helper = $this->getHelper('question');
@@ -60,15 +58,64 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
       } while ($answer !== TRUE);
 
       $site_id = array_search($site, $sites, TRUE);
+      $sites = [$site_id => $site];
+    }
 
-      if (!$this->createAcsfSiteBackup($site_id, $site)) {
+    $task_ids = [];
+    foreach ($sites as $site_id => $site) {
+      $output->writeln("Create database backup for site: $site...");
+      $task_id = $this->createAcsfSiteBackup($site_id, $site);
+      if (!$task_id) {
         $output->writeln('<error>Failed to queue task for creating db backup.</error>');
         return 2;
       }
+
+      $task_ids[] = $task_id;
     }
 
-    $output->writeln('Backups can take several minutes to complete for small websites, but larger websites can take much longer to complete.');
-    $output->writeln('You can check your backups on ACSF or using this CLI tool. (acsf:backup:list)');
+    if (!$task_ids) {
+      $output->writeln('<error>Cannot get task ids for database backup creation.</error>');
+      return 3;
+    }
+
+    $wait = $input->hasOption('wait') ? $input->getOption('wait') : FALSE;
+    if ($wait < 10) {
+      $output->writeln('<error>Input of wait option must be higher than 10 seconds.</error>');
+    }
+
+    if ($input->getOption('silent') && $wait) {
+      $backup_ids = $this->wait($task_ids, $wait);
+      if (isset($backup_ids['error'])) {
+        $output->writeln($this->toJsonError($backup_ids['error']));
+        return 4;
+      }
+
+      if (count($backup_ids) !== count($task_ids)) {
+        $output->writeln('<warning>Some of the backups not created yet. Terminating...</warning>');
+        return 5;
+      }
+
+      $output->writeln($this->toJsonSuccess(['backups' => $backup_ids]));
+      return 0;
+    }
+
+    if ($input->getOption('silent')) {
+      // @todo can be used in following task for saving task ids and not backup ids.
+      return 0;
+    }
+
+    if ($wait) {
+      $success = $this->waitInteractive($task_ids, $output, $wait);
+      if (!$success) {
+        $output->writeln('<warning>Some of the backups not created yet. Terminating...</warning>');
+        return 6;
+      }
+    }
+
+    if (!$wait) {
+      $output->writeln('Backups can take several minutes to complete for small websites, but larger websites can take much longer to complete.');
+      $output->writeln('You can check your backups on ACSF or using this CLI tool. (acsf:backup:list)');
+    }
 
     return 0;
   }
@@ -81,10 +128,10 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
    * @param string $name
    *   Acsf site name.
    *
-   * @return bool
-   *   TRUE if task has been created for database backup creation.
+   * @return string
+   *   Task id.
    */
-  protected function createAcsfSiteBackup(int $site_id, string $name): bool {
+  protected function createAcsfSiteBackup(int $site_id, string $name): string {
     $label = $name . '_' . time() . '_cli_tool';
 
     $options['body'] = json_encode([
@@ -96,7 +143,89 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
 
     $body = $this->acsfClient->createDatabaseBackup($site_id, $options);
 
-    return isset($body['task_id']) ?? FALSE;
+    return $body['task_id'] ?? '';
+  }
+
+  /**
+   * Pings ACSF about task status and prints info to the output.
+   *
+   * @param array $task_ids
+   *   Task ids.
+   * @param \Symfony\Component\Console\Output\OutputInterface $output
+   *   Output.
+   * @param int $wait_time
+   *   This long will try to ping status endpoint for info. (seconds)
+   *
+   * @return bool
+   *   True if every task was finished successfully.
+   */
+  protected function waitInteractive(array $task_ids, OutputInterface $output, int $wait_time): bool {
+    $tasks = implode(', ', $task_ids);
+    $output->writeln("<info>Waiting for the following task(s) to complete: {$tasks}</info>");
+    /** @var \Acquia\Console\Acsf\Client\AcsfClient $acsf_client */
+    $successful_task = 0;
+    $task_count = count($task_ids);
+
+    while ($successful_task !== $task_count && $wait_time >= 0) {
+      $output->writeln('Ping ACSF about pending tasks...');
+      foreach ($task_ids as $id => $task_id) {
+        $resp = $this->acsfClient->pingStatusEndpoint($task_id);
+        if ($resp['wip_task']['status_string'] === 'Completed') {
+          $successful_task++;
+          $output->writeln("<info>Task with id: $task_id completed successfully.</info>");
+          unset($task_ids[$id]);
+        }
+      }
+
+      sleep(10);
+      $wait_time -= 10;
+    }
+
+    if ($wait_time < 0) {
+      $output->writeln("<warning>In the given time task of db backup creation cannot finish. Please check your task on ACSF!</warning>");
+    }
+
+    return $successful_task === $task_count;
+  }
+
+  /**
+   * Pings ACSF about task status without output.
+   *
+   * @param array $task_ids
+   *   Task ids.
+   * @param int $wait_time
+   *   This long will try to ping status endpoint for info. (seconds)
+   *
+   * @return array
+   *   Array containing backup ids or error message.
+   */
+  protected function wait(array $task_ids, int $wait_time): array {
+    $successful_task = 0;
+    $task_count = count($task_ids);
+
+    $backup_ids = [];
+    while ($successful_task !== $task_count && $wait_time >= 0) {
+      foreach ($task_ids as $id => $task_id) {
+        $resp = $this->acsfClient->pingStatusEndpoint($task_id);
+        if ($resp['wip_task']['status_string'] === 'Completed') {
+          $successful_task++;
+          $backup_ids[$resp['wip_task']['nid']] = [
+            'id' => $resp['wip_task']['nid'],
+            'completed_at' => $resp['time'],
+          ];
+          unset($task_ids[$id]);
+        }
+      }
+
+      sleep(10);
+      $wait_time -= 10;
+    }
+
+    if ($wait_time < 0) {
+      $backup_ids['error'] = "<error>In the given time task of db backup creation cannot finish. Please check your task on ACSF!</error>";
+    }
+
+    return $backup_ids;
   }
 
 }

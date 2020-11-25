@@ -172,4 +172,17 @@ class AcsfClient extends Client {
     return NULL;
   }
 
+  /**
+   * Get request against ACSF wip task status endpoint.
+   *
+   * @param string $task_id
+   *   Task id.
+   *
+   * @return array
+   *   Response.
+   */
+  public function pingStatusEndpoint(string $task_id): array {
+    return $this->getJsonResponseBody($this->get("wip/task/{$task_id}/status"), 'Could not get task status.');
+  }
+
 }

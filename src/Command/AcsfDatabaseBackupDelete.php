@@ -24,6 +24,7 @@ class AcsfDatabaseBackupDelete extends AcsfCommandBase {
    */
   protected function configure(): void {
     $this->setDescription('Delete database backup of an ACSF site');
+    $this->setAliases(['acsf-dbd']);
   }
 
   /**
@@ -54,22 +55,26 @@ class AcsfDatabaseBackupDelete extends AcsfCommandBase {
       }
 
       $backup_question = new ChoiceQuestion('Pick which db backup should be deleted:', $list);
+      $backup_question->setMultiselect(TRUE);
       $db_to_delete = $helper->ask($input, $output, $backup_question);
-      $confirm_question = new ConfirmationQuestion("Do you want to delete backup: $db_to_delete?");
+      $delete = implode(', ', $db_to_delete);
+      $confirm_question = new ConfirmationQuestion("Do you want to delete backup: $delete?");
       $answer2 = $helper->ask($input, $output, $confirm_question);
     } while ($answer2 !== TRUE);
 
-    $db_backup_id = array_search($db_to_delete, $list, TRUE);
-    if (!$db_backup_id) {
-      return 3;
+    foreach ($db_to_delete as $value) {
+      $db_backup_id = array_search($value, $list, TRUE);
+      if (!$db_backup_id) {
+        return 3;
+      }
+
+      $response_body = $this->acsfClient->deleteAcsfSiteBackup($site_id, $db_backup_id);
+      if (!isset($response_body['task_id'])) {
+        return 4;
+      }
     }
 
-    $response_body = $this->acsfClient->deleteAcsfSiteBackup($site_id, $db_backup_id);
-    if (!isset($response_body['task_id'])) {
-      return 4;
-    }
-
-    $output->writeln("Request sent to ACSF for deletion of backup: <comment>$db_to_delete</comment>. Backups deletion take several minutes to complete.");
+    $output->writeln("Request sent to ACSF for deletion of backup(s): <comment>$delete</comment>. Backups deletion take several minutes to complete.");
     $output->writeln('You can check your backups on ACSF or using this CLI tool. (acsf:backup:list)');
 
     return 0;
