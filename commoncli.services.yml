@@ -9,6 +9,11 @@ services:
     class: Acquia\Console\Acsf\EventSubscriber\Platform\PlatformSubscriberACSF
     tags:
       - { name: kernel.event_subscriber }
+  platform.config.app_finder_acsf:
+    class: Acquia\Console\Acsf\EventSubscriber\Platform\PlatformConfigAppFinderACSF
+    arguments: ['@http_client_factory.acquia_cloud']
+    tags:
+      - { name: kernel.event_subscriber }
 
   #  Commands
   command.acsf.backup.create:

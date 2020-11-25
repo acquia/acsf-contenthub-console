@@ -185,7 +185,8 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
     $aceClient = $this->getAceClient();
     $acsfClient = $this->getAcsfClient();
     $environments = new Environments($aceClient);
-    $environment = $environments->get($this->get(AcquiaCloudPlatform::ACE_ENVIRONMENT_NAME));
+    $env_id = $this->get(AcquiaCloudPlatform::ACE_ENVIRONMENT_NAME);
+    $environment = $environments->get($env_id);
     $sshUrl = $environment->sshUrl;
     [, $url] = explode('@', $sshUrl);
     [$application] = explode('.', $url);
@@ -209,9 +210,11 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
       $sites = array_column($sites, 'domain');
     }
 
+    $vendor_path = $this->get('acquia.cloud.environment.vendor_paths');
     $args = $this->dispatchPlatformArgumentInjectionEvent($input, $sites, $command);
     foreach ($sites as $site) {
       $commands[] = "echo " . sprintf("Attempting to execute requested command for site: %s", $site);
+      $commands[] = "cd {$vendor_path[$env_id]}";
       $commands[] = "./vendor/bin/commoncli {$args[$site]->__toString()}";
     }
 
