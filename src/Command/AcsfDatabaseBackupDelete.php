@@ -23,7 +23,7 @@ class AcsfDatabaseBackupDelete extends AcsfCommandBase {
    * {@inheritdoc}
    */
   protected function configure(): void {
-    $this->setDescription('Delete database backup of an ACSF site');
+    $this->setDescription('Deletes a database backup of a site in the ACSF platform.');
     $this->setAliases(['acsf-dbd']);
   }
 

@@ -21,7 +21,7 @@ class AcsfCronList extends AcquiaCloudCronList {
    * {@inheritdoc}
    */
   protected function configure() {
-    $this->setDescription('List scheduled jobs');
+    $this->setDescription('List Scheduled Jobs');
     $this->setAliases(['acsf-cl']);
   }
 

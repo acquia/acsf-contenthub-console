@@ -22,7 +22,7 @@ class AcsfCronCheck extends AcquiaCloudCronCheck {
    * {@inheritdoc}
    */
   protected function configure() {
-    $this->setDescription('Checks for scheduled jobs which are running ACH queues.');
+    $this->setDescription('Checks for Scheduled Jobs which are running Content Hub queues.');
     $this->setAliases(['acsf-cch']);
     $this->addOption('fix', 'f', InputOption::VALUE_NONE, 'Disable schedule jobs which are running ACH queues.');
   }

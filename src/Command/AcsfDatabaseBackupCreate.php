@@ -29,7 +29,7 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
    * {@inheritdoc}
    */
   protected function configure(): void {
-    $this->setDescription('Create database backup for each one of your ACSF sites.');
+    $this->setDescription('Creates database backups for each site on the ACSF platform.');
     $this->setAliases(['acsf-dbc']);
     $this->addOption('all', 'a', InputOption::VALUE_NONE, 'Perform backups for all sites in the platform.');
     $this->addOption('wait', 'w', InputOption::VALUE_REQUIRED, 'Provide time (seconds) how long should we monitor task if completed or not.');
