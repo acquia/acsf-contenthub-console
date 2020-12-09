@@ -14,6 +14,11 @@ services:
     arguments: ['@http_client_factory.acquia_cloud']
     tags:
       - { name: kernel.event_subscriber }
+  platform.config.acsf.site_protocol:
+    class: Acquia\Console\Acsf\EventSubscriber\Platform\AcsfPlatformConfigHttpProtocol
+    arguments: ['@http_client_factory.acsf']
+    tags:
+      - { name: kernel.event_subscriber }
 
   #  Commands
   command.acsf.backup.create:

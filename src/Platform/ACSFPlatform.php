@@ -202,12 +202,12 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
       ];
     }
     else {
-      $sites = $acsfClient->listSites();
+      $sites = $this->getPlatformSites();
       if (!$sites) {
         $output->writeln('<warning>No sites available. Exiting...</warning>');
         return 2;
       }
-      $sites = array_column($sites, 'domain');
+      $sites = array_column($sites, 'uri');
     }
 
     $vendor_path = $this->get('acquia.cloud.environment.vendor_paths');
@@ -263,11 +263,29 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
     $sites = [];
     foreach ($this->getAcsfClient()->listSites() as $site) {
       $sites[$site['domain']] = [
-        'uri' => $site['domain'],
+        'uri' => $this->prefixDomain($site['domain'], $site['id']),
         'platform_id' => static::getPlatformId()];
     }
     return $sites;
   }
+
+  /**
+   * Prefix uris with http protocol.
+   *
+   * @param string $domain
+   *   Plain domain.
+   * @param string $site_id
+   *   Environment id.
+   *
+   * @return string
+   *   Uri with http:// or https:// prefix.
+   */
+  public function prefixDomain(string $domain, string $site_id): string {
+    $http_conf = $this->get(AcquiaCloudPlatform::ACE_SITE_HTTP_PROTOCOL);
+    $prefix = isset($http_conf[$site_id]) ? $http_conf[$site_id] : 'https://';
+    return $prefix . $domain;
+  }
+
 
   /**
    * Compares the provided uri with the acsf site list.
