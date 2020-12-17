@@ -7,6 +7,8 @@ use Acquia\Console\Acsf\Platform\ACSFPlatform;
 use Acquia\Console\Cloud\Tests\Command\CommandTestHelperTrait;
 use EclipseGc\CommonConsole\PlatformInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use Prophecy\Argument;
+use Prophecy\Prophecy\ObjectProphecy;
 
 /**
  * Class AcsfDatabaseBackupCreateTest.
@@ -107,16 +109,15 @@ class AcsfDatabaseBackupCreateTest extends AcsfDatabaseTestBase {
    * {@inheritdoc}
    */
   public function getPlatform(array $args = []): PlatformInterface {
-    $client_modifier = function (MockObject $client) use ($args) {
-      $client->method('listSites')->willReturn($args['sites']);
-      $client->method('createDatabaseBackup')->willReturn($args['tasks']);
-      $client->method('pingStatusEndpoint')
-        ->willReturnOnConsecutiveCalls(
-          $args['status'],
-          $args['status'],
-          $args['status'],
-          $args['status2']
-        );
+    $client_modifier = function (ObjectProphecy $client) use ($args) {
+      $client->listSites(Argument::any())
+        ->willReturn($args['sites']);
+
+      $client->createDatabaseBackup(Argument::any(), Argument::any())
+        ->willReturn($args['tasks']);
+
+      $client->pingStatusEndpoint(Argument::any())
+        ->willReturn($args['status'], $args['status'], $args['status'], $args['status2']);
     };
 
     return $this->getAcsfPlatform(

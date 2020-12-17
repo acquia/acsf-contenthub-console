@@ -7,6 +7,8 @@ use Acquia\Console\Acsf\Command\AcsfDatabaseBackupDelete;
 use Acquia\Console\Acsf\Platform\ACSFPlatform;
 use EclipseGc\CommonConsole\PlatformInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use Prophecy\Argument;
+use Prophecy\Prophecy\ObjectProphecy;
 
 /**
  * Class AcsfDatabaseBackupDeleteTest.
@@ -82,10 +84,15 @@ class AcsfDatabaseBackupDeleteTest extends AcsfDatabaseTestBase {
    * {@inheritdoc}
    */
   public function getPlatform(array $args = []): PlatformInterface {
-    $client_modifier = function (MockObject $client) use ($args) {
-      $client->method('listSites')->willReturn($args['sites']);
-      $client->method('getBackupsBySiteId')->willReturn($args['backups']);
-      $client->method('deleteAcsfSiteBackup')->willReturn($args['tasks']);
+    $client_modifier = function (ObjectProphecy $client) use ($args) {
+      $client->listSites(Argument::any())
+        ->willReturn($args['sites']);
+
+      $client->getBackupsBySiteId(Argument::any())
+        ->willReturn($args['backups']);
+
+      $client->deleteAcsfSiteBackup(Argument::any(), Argument::any())
+        ->willReturn($args['tasks']);
     };
 
     return $this->getAcsfPlatform(
