@@ -5,7 +5,6 @@ namespace Acquia\Console\Acsf\Command;
 use Acquia\Console\Acsf\Platform\ACSFPlatform;
 use Acquia\Console\Cloud\Command\AcquiaCloudCronCreate;
 use Acquia\Console\ContentHub\Command\Helpers\PlatformCmdOutputFormatterTrait;
-use Acquia\Console\ContentHub\Command\Helpers\PlatformCommandExecutionTrait;
 
 /**
  * Class AcsfCronCreate.
@@ -14,7 +13,6 @@ use Acquia\Console\ContentHub\Command\Helpers\PlatformCommandExecutionTrait;
  */
 class AcsfCronCreate extends AcquiaCloudCronCreate {
 
-  use PlatformCommandExecutionTrait;
   use PlatformCmdOutputFormatterTrait;
 
   /**

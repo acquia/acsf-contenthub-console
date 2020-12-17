@@ -68,7 +68,7 @@ class AcsfBackupCreate extends AcquiaCloudBackupCreate {
       '--silent' => TRUE,
     ];
 
-    $raw = $this->runLocallyWithMemoryOutput(AcsfDatabaseBackupCreate::getDefaultName(),
+    $raw = $this->platformCommandExecutioner->runLocallyWithMemoryOutput(AcsfDatabaseBackupCreate::getDefaultName(),
       $platform, $cmd_input);
 
     $db_backup_list = [];

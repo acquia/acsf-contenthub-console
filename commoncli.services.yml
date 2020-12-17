@@ -24,7 +24,7 @@ services:
   command.acsf.backup.create:
     class: Acquia\Console\Acsf\Command\Backups\AcsfBackupCreate
     public: true
-    arguments: ['@event_dispatcher', '@config.storage']
+    arguments: ['@event_dispatcher', '@config.storage', '@platform_command_executioner']
     tags:
       - { name: common_console_command }
   command.acsf.backup_list:
@@ -60,7 +60,7 @@ services:
   command.acsf.cron_create:
     class: Acquia\Console\Acsf\Command\AcsfCronCreate
     public: true
-    arguments: ['@event_dispatcher']
+    arguments: ['@event_dispatcher', '@platform_command_executioner']
     tags:
       - { name: common_console_command }
   command.acsf.cron_check:
