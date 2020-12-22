@@ -4,6 +4,7 @@ namespace Acquia\Console\Acsf\Command\Backups;
 
 use Acquia\Console\Acsf\Client\ResponseHandlerTrait;
 use Acquia\Console\Acsf\Command\AcsfDatabaseBackupCreate;
+use Acquia\Console\Acsf\Command\AcsfDatabaseBackupList;
 use Acquia\Console\Acsf\Platform\ACSFPlatform;
 use Acquia\Console\Cloud\Command\Backups\AcquiaCloudBackupCreate;
 use EclipseGc\CommonConsole\PlatformInterface;
@@ -43,35 +44,66 @@ class AcsfBackupCreate extends AcquiaCloudBackupCreate {
    */
   protected function getBackupId(PlatformInterface $platform, OutputInterface $output): array {
     $output->writeln('<info>Starts creating the database backups.</info>');
-    $task_ids = $this->runAcsfBackupCreateCommand($platform, $output);
+    $list_before = $this->runAcsfBackupListCommand($platform, $output);
+    $raw = $this->runAcsfBackupCreateCommand($platform);
 
-    return $task_ids;
+    if ($raw->getReturnCode() !== 0) {
+      throw new \Exception('Database backup creation failed.');
+    }
+
+    $list_after = $this->runAcsfBackupListCommand($platform, $output);
+
+    return $this->getDifference($list_before, $list_after);
   }
 
   /**
-   * Runs backup creation or ACSF sites.
+   * Helper function to get the difference of backups list before and after backup creation.
    *
-   * @param \EclipseGc\CommonConsole\PlatformInterface $platform
-   *   Platform instance.
-   * @param \Symfony\Component\Console\Output\OutputInterface $output
-   *   Output.
+   * @param object $before
+   *   List of backups before backup creation.
+   * @param object $after
+   *   List of backups after backup creation.
    *
    * @return array
-   *   Array containing created backup ids.
+   *   Array of sites with latest backup id created.
+   */
+  protected function getDifference(object $before, object $after) {
+    $diff = $diff_backup_ids = [];
+    $before = json_decode(json_encode($before), true);
+    $after = json_decode(json_encode($after), true);
+
+    foreach ($before as $site_id => $backup_ids) {
+      $diff[$site_id] = current(array_diff($after[$site_id], $backup_ids));
+    }
+
+    // This needs to be done because even if backup isn't created, $diff still has an associative array of site ids => false
+    // which fails the condition in AcquiaCloudBackupCreate to check empty $backups for this command.
+    foreach ($diff as $backup_id) {
+      if (!is_bool($backup_id)) {
+        $diff_backup_ids[] = $backup_id;
+      }
+    }
+
+    return $diff_backup_ids;
+  }
+
+  /**
+   * Helper function to get the list of Acsf sites backup list.
+   *
+   * @param PlatformInterface $platform
+   *   Platform instance.
+   * @param OutputInterface $output
+   *   Output instance.
+   *
+   * @return object|null
+   *   Object of list containing the sites and associated backup ids.
    *
    * @throws \Exception
    */
-  protected function runAcsfBackupCreateCommand(PlatformInterface $platform, OutputInterface $output): array {
-    $cmd_input = [
-      '--all' => TRUE,
-      '--wait' => 300,
-      '--silent' => TRUE,
-    ];
+  protected function runAcsfBackupListCommand(PlatformInterface $platform, OutputInterface $output): ?object  {
+    $raw = $this->platformCommandExecutioner->runLocallyWithMemoryOutput(AcsfDatabaseBackupList::getDefaultName(),
+      $platform, ['--silent' => TRUE]);
 
-    $raw = $this->platformCommandExecutioner->runLocallyWithMemoryOutput(AcsfDatabaseBackupCreate::getDefaultName(),
-      $platform, $cmd_input);
-
-    $db_backup_list = [];
     $lines = explode(PHP_EOL, trim($raw));
     foreach ($lines as $line) {
       $data = $this->fromJson($line, $output);
@@ -79,14 +111,32 @@ class AcsfBackupCreate extends AcquiaCloudBackupCreate {
         continue;
       }
 
-      if ($data->backups) {
-        foreach ($data->backups as $id => $backup) {
-          $db_backup_list[$id] = (array) $backup;
-        }
-      }
+      return $data;
     }
 
-    return $db_backup_list;
+    return NULL;
+  }
+
+  /**
+   * Runs backup creation or ACSF sites.
+   *
+   * @param \EclipseGc\CommonConsole\PlatformInterface $platform
+   *   Platform instance.
+   *
+   * @return object
+   *   Object containing command run info.
+   *
+   * @throws \Exception
+   */
+  protected function runAcsfBackupCreateCommand(PlatformInterface $platform): object {
+    $cmd_input = [
+      '--all' => TRUE,
+      '--wait' => 300,
+      '--silent' => TRUE,
+    ];
+
+    return $this->platformCommandExecutioner->runLocallyWithMemoryOutput(AcsfDatabaseBackupCreate::getDefaultName(),
+      $platform, $cmd_input);
   }
 
 }

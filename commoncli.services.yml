@@ -27,25 +27,37 @@ services:
     arguments: ['@event_dispatcher', '@config.storage', '@platform_command_executioner']
     tags:
       - { name: common_console_command }
-  command.acsf.backup_list:
+  command.acsf.backup.restore:
+    class: Acquia\Console\Acsf\Command\Backups\AcsfBackupRestore
+    public: true
+    arguments: ['@event_dispatcher', '@config.storage', '@platform_command_executioner']
+    tags:
+      - { name: common_console_command }
+  command.acsf.database.backup_list:
     class: Acquia\Console\Acsf\Command\AcsfDatabaseBackupList
     public: true
     arguments: ['@event_dispatcher']
     tags:
       - { name: common_console_command }
-  command.acsf.backup_create:
+  command.acsf.database.backup_create:
     class: Acquia\Console\Acsf\Command\AcsfDatabaseBackupCreate
     public: true
     arguments: ['@event_dispatcher']
     tags:
       - { name: common_console_command }
-  command.acsf.backup_restore:
+  command.acsf.database.backup_restore:
     class: Acquia\Console\Acsf\Command\AcsfDatabaseBackupRestore
     public: true
     arguments: ['@event_dispatcher']
     tags:
       - { name: common_console_command }
-  command.acsf.backup_delete:
+  command.acsf.database.backup_restore.helper:
+    class: Acquia\Console\Acsf\Command\Helpers\AcsfDbBackupRestoreHelper
+    public: true
+    arguments: ['@event_dispatcher']
+    tags:
+      - { name: common_console_command }
+  command.acsf.database.backup_delete:
     class: Acquia\Console\Acsf\Command\AcsfDatabaseBackupDelete
     public: true
     arguments: ['@event_dispatcher']

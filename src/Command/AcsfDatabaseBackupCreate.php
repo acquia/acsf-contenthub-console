@@ -78,30 +78,15 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
       return 3;
     }
 
-    $wait = $input->hasOption('wait') ? $input->getOption('wait') : FALSE;
-    if ($wait < 10) {
+    $wait = $input->hasOption('wait') ? $input->getOption('wait') : NULL;
+    if ($wait && $wait < 10) {
       $output->writeln('<error>Input of wait option must be higher than 10 seconds.</error>');
+      return 4;
     }
 
-    if ($input->getOption('silent') && $wait) {
-      $backup_ids = $this->wait($task_ids, $wait);
-      if (isset($backup_ids['error'])) {
-        $output->writeln($this->toJsonError($backup_ids['error']));
-        return 4;
-      }
-
-      if (count($backup_ids) !== count($task_ids)) {
-        $output->writeln('<warning>Some of the backups not created yet. Terminating...</warning>');
-        return 5;
-      }
-
-      $output->writeln($this->toJsonSuccess(['backups' => $backup_ids]));
-      return 0;
-    }
-
-    if ($input->getOption('silent')) {
-      // @todo can be used in following task for saving task ids and not backup ids.
-      return 0;
+    if ($input->hasOption('silent') && $input->getOption('silent') && $wait) {
+      $success = $this->wait($task_ids, $wait);
+      return $success ? 0 : 5;
     }
 
     if ($wait) {
@@ -196,23 +181,18 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
    * @param int $wait_time
    *   This long will try to ping status endpoint for info. (seconds)
    *
-   * @return array
-   *   Array containing backup ids or error message.
+   * @return bool
+   *   TRUE if tasks are finished successfully.
    */
-  protected function wait(array $task_ids, int $wait_time): array {
+  protected function wait(array $task_ids, int $wait_time): bool {
     $successful_task = 0;
     $task_count = count($task_ids);
 
-    $backup_ids = [];
     while ($successful_task !== $task_count && $wait_time >= 0) {
       foreach ($task_ids as $id => $task_id) {
         $resp = $this->acsfClient->pingStatusEndpoint($task_id);
         if ($resp['wip_task']['status_string'] === 'Completed') {
           $successful_task++;
-          $backup_ids[$resp['wip_task']['nid']] = [
-            'id' => $resp['wip_task']['nid'],
-            'completed_at' => $resp['time'],
-          ];
           unset($task_ids[$id]);
         }
       }
@@ -221,11 +201,7 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
       $wait_time -= 10;
     }
 
-    if ($wait_time < 0) {
-      $backup_ids['error'] = "<error>In the given time task of db backup creation cannot finish. Please check your task on ACSF!</error>";
-    }
-
-    return $backup_ids;
+    return $wait_time < 0 ? FALSE : TRUE;
   }
 
 }

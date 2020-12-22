@@ -2,8 +2,10 @@
 
 namespace Acquia\Console\Acsf\Command;
 
+use Acquia\Console\ContentHub\Command\Helpers\PlatformCmdOutputFormatterTrait;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 
@@ -14,6 +16,8 @@ use Symfony\Component\Console\Question\ChoiceQuestion;
  */
 class AcsfDatabaseBackupList extends AcsfCommandBase {
 
+  use PlatformCmdOutputFormatterTrait;
+
   /**
    * {@inheritdoc}
    */
@@ -23,7 +27,8 @@ class AcsfDatabaseBackupList extends AcsfCommandBase {
    * {@inheritdoc}
    */
   protected function configure(): void {
-    $this->setDescription('Lists database backups for ACSF sites.');
+    $this->setDescription('List database backups for ACSF sites.');
+    $this->addOption('silent', 's', InputOption::VALUE_NONE, 'Returns list, but does not send it to the output.');
     $this->setAliases(['acsf-dbl']);
   }
 
@@ -34,6 +39,16 @@ class AcsfDatabaseBackupList extends AcsfCommandBase {
     if (!$sites = $this->getAcsfSites()) {
       $output->writeln('No sites found.');
       return 1;
+    }
+
+    if ($input->hasOption('silent') && $input->getOption('silent')) {
+      $backups = [];
+      foreach ($sites as $site_id => $site) {
+        $resp = $this->acsfClient->getBackupsBySiteId($site_id);
+        $backups[$site_id] = array_column($resp['backups'], 'id');
+      }
+      $output->writeln($this->toJsonSuccess($backups));
+      return 0;
     }
 
     $helper = $this->getHelper('question');

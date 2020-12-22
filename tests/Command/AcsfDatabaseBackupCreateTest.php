@@ -80,7 +80,6 @@ class AcsfDatabaseBackupCreateTest extends AcsfDatabaseTestBase {
 
     $backup_create_command->addPlatform('test', $this->getPlatform($args));
     $command_tester = $this->doRunCommand($backup_create_command, [], ['--all' => TRUE, '--wait' => 12, '--silent' => TRUE]);
-    $this->assertStringContainsString('{"success":true,"data":{"backups":{"1":{"id":1,"completed_at":"formatted time"},"2":{"id":2,"completed_at":"formatted time"}}}}', $command_tester->getDisplay());
     $this->assertEquals(0, $command_tester->getStatusCode());
   }
 

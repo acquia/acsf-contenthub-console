@@ -298,7 +298,11 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
    */
   protected function isValidUri(string $uri): bool {
     $sites = $this->getAcsfClient()->listSites();
-    $sites_uri = array_column($sites, 'domain');
+    // Fix for issue arisen from protocol attached to uri.
+    $sites_uri = array_map(function($site) {
+      // Attach protocol to the domain for each site.
+      return $this->prefixDomain($site['domain'], $site['id']);
+    }, $sites);
     return in_array($uri, $sites_uri, TRUE);
   }
 
