@@ -89,7 +89,8 @@ class AcsfBackupCreate extends AcquiaCloudBackupCreate {
     $before = json_decode(json_encode($before), true);
     $after = json_decode(json_encode($after), true);
     foreach ($before as $site_id => $backup_ids) {
-      if ($backup_id = current(array_diff($after[$site_id], $backup_ids))) {
+      $backup_id = current(array_diff($after[$site_id], $backup_ids));
+      if ($backup_id) {
         $diff[$site_id] = $backup_id;
       }
     }

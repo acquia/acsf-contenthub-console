@@ -24,7 +24,7 @@ class AcsfDbBackupRestoreHelper extends AcsfCommandBase {
    */
   protected function configure() {
     $this->setDescription('Restore database backups.');
-    $this->addOption('backups', 'bid', InputOption::VALUE_REQUIRED, 'Database backups with info.');
+    $this->addOption('backups', 'bid', InputOption::VALUE_REQUIRED, 'Database backups array of backup_id\'s keyed by site_id\'s.');
     $this->setHidden(TRUE);
   }
 
