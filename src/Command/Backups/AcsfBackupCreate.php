@@ -8,6 +8,7 @@ use Acquia\Console\Acsf\Command\AcsfDatabaseBackupList;
 use Acquia\Console\Acsf\Platform\ACSFPlatform;
 use Acquia\Console\Cloud\Command\Backups\AcquiaCloudBackupCreate;
 use EclipseGc\CommonConsole\PlatformInterface;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -23,6 +24,13 @@ class AcsfBackupCreate extends AcquiaCloudBackupCreate {
    * {@inheritdoc}
    */
   protected static $defaultName = 'acsf:backup:create';
+
+  /**
+   * Acsf client.
+   *
+   * @var \Acquia\Console\Acsf\Client\AcsfClient
+   */
+  protected $acsfClient;
 
   /**
    * {@inheritdoc}
@@ -42,8 +50,17 @@ class AcsfBackupCreate extends AcquiaCloudBackupCreate {
   /**
    * {@inheritdoc}
    */
+  protected function initialize(InputInterface $input, OutputInterface $output): void {
+    parent::initialize($input, $output);
+
+    $this->acsfClient = $this->platform->getAcsfClient();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   protected function getBackupId(PlatformInterface $platform, OutputInterface $output): array {
-    $output->writeln('<info>Starts creating the database backups.</info>');
+    $output->writeln('<info>Starting the creation of database backups for all sites in the platform.</info>');
     $list_before = $this->runAcsfBackupListCommand($platform, $output);
     $raw = $this->runAcsfBackupCreateCommand($platform);
 
@@ -68,23 +85,16 @@ class AcsfBackupCreate extends AcquiaCloudBackupCreate {
    *   Array of sites with latest backup id created.
    */
   protected function getDifference(object $before, object $after) {
-    $diff = $diff_backup_ids = [];
+    $diff = [];
     $before = json_decode(json_encode($before), true);
     $after = json_decode(json_encode($after), true);
-
     foreach ($before as $site_id => $backup_ids) {
-      $diff[$site_id] = current(array_diff($after[$site_id], $backup_ids));
-    }
-
-    // This needs to be done because even if backup isn't created, $diff still has an associative array of site ids => false
-    // which fails the condition in AcquiaCloudBackupCreate to check empty $backups for this command.
-    foreach ($diff as $backup_id) {
-      if (!is_bool($backup_id)) {
-        $diff_backup_ids[] = $backup_id;
+      if ($backup_id = current(array_diff($after[$site_id], $backup_ids))) {
+        $diff[$site_id] = $backup_id;
       }
     }
 
-    return $diff_backup_ids;
+    return $diff;
   }
 
   /**
@@ -137,6 +147,18 @@ class AcsfBackupCreate extends AcquiaCloudBackupCreate {
 
     return $this->platformCommandExecutioner->runLocallyWithMemoryOutput(AcsfDatabaseBackupCreate::getDefaultName(),
       $platform, $cmd_input);
+  }
+
+  /**
+   * Deletes a database backup in an environment.
+   *
+   * @param array $backups
+   *   The database backup list.
+   */
+  protected function deleteDatabaseBackups(array $backups) {
+    foreach ($backups as $site_id => $backup_id) {
+      $this->acsfClient->deleteAcsfSiteBackup($site_id, $backup_id);
+    }
   }
 
 }
