@@ -36,7 +36,7 @@ class AcsfBackupCreate extends AcquiaCloudBackupCreate {
    * {@inheritdoc}
    */
   protected function configure() {
-    $this->setDescription('Creates a snapshot of Acquia Content Hub Service and database backups for all sites within the ACSF platform..');
+    $this->setDescription('Creates a snapshot of Acquia Content Hub Service and database backups for all sites within the ACSF platform.');
     $this->setAliases(['acsf-bc']);
   }
 

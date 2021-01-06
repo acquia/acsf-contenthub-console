@@ -33,6 +33,12 @@ services:
     arguments: ['@event_dispatcher', '@config.storage', '@platform_command_executioner']
     tags:
       - { name: common_console_command }
+  command.acsf.backup.delete:
+    class: Acquia\Console\Acsf\Command\Backups\AcsfBackupDelete
+    public: true
+    arguments: [ '@event_dispatcher', '@config.storage', '@platform_command_executioner' ]
+    tags:
+      - { name: common_console_command }
   command.acsf.database.backup_list:
     class: Acquia\Console\Acsf\Command\AcsfDatabaseBackupList
     public: true
@@ -55,6 +61,12 @@ services:
     class: Acquia\Console\Acsf\Command\Helpers\AcsfDbBackupRestoreHelper
     public: true
     arguments: ['@event_dispatcher']
+    tags:
+      - { name: common_console_command }
+  command.acsf.database.backup_delete.helper:
+    class: Acquia\Console\Acsf\Command\Helpers\AcsfDbBackupDeleteHelper
+    public: true
+    arguments: [ '@event_dispatcher' ]
     tags:
       - { name: common_console_command }
   command.acsf.database.backup_delete:

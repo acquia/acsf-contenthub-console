@@ -23,7 +23,7 @@ class AcsfBackupRestore extends AcquiaCloudBackupRestore {
    * {@inheritdoc}
    */
   protected function configure() {
-    $this->setDescription('Restore snapshot of ACH service and database backups for all site within the platform.');
+    $this->setDescription('Restore snapshot of Acquia Content Hub service service and database backups for all sites within the ACSF platform.');
     $this->setAliases(['acsf-br']);
   }
 
