@@ -64,16 +64,4 @@ services:
     arguments: ['@event_dispatcher']
     tags:
       - { name: common_console_command }
-  command.acsf.cron_create:
-    class: Acquia\Console\Acsf\Command\AcsfCronCreate
-    public: true
-    arguments: ['@event_dispatcher', '@platform_command_executioner']
-    tags:
-      - { name: common_console_command }
-  command.acsf.cron_check:
-    class: Acquia\Console\Acsf\Command\AcsfCronCheck
-    public: true
-    arguments: ['@event_dispatcher']
-    tags:
-      - { name: common_console_command }
 
