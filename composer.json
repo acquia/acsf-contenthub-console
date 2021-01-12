@@ -12,7 +12,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Acquia\\Console\\Acsf\\Tests\\": "tests"
+            "Acquia\\Console\\Acsf\\Tests\\": "tests",
+            "Acquia\\Console\\Cloud\\Tests\\": "vendor/acquia/cloud-console/tests"
         }
     },
     "minimum-stability": "dev",
