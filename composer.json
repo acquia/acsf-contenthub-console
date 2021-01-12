@@ -3,7 +3,7 @@
     "description": "A package providing Acquia Cloud Site Factory commands for the CommonConsole command line interface.",
     "type": "project",
     "require": {
-        "acquia/cloud-console": "dev-master"
+        "acquia/cloud-console": "dev-LCH-4692"
     },
     "autoload": {
         "psr-4": {
