@@ -21,24 +21,7 @@ services:
       - { name: kernel.event_subscriber }
 
   #  Commands
-  command.acsf.backup.create:
-    class: Acquia\Console\Acsf\Command\Backups\AcsfBackupCreate
-    public: true
-    arguments: ['@event_dispatcher', '@config.storage', '@platform_command_executioner']
-    tags:
-      - { name: common_console_command }
-  command.acsf.backup.restore:
-    class: Acquia\Console\Acsf\Command\Backups\AcsfBackupRestore
-    public: true
-    arguments: ['@event_dispatcher', '@config.storage', '@platform_command_executioner']
-    tags:
-      - { name: common_console_command }
-  command.acsf.backup.delete:
-    class: Acquia\Console\Acsf\Command\Backups\AcsfBackupDelete
-    public: true
-    arguments: [ '@event_dispatcher', '@config.storage', '@platform_command_executioner' ]
-    tags:
-      - { name: common_console_command }
+
   command.acsf.database.backup_list:
     class: Acquia\Console\Acsf\Command\AcsfDatabaseBackupList
     public: true
@@ -77,18 +60,6 @@ services:
       - { name: common_console_command }
   command.acsf.cron_list:
     class: Acquia\Console\Acsf\Command\AcsfCronList
-    public: true
-    arguments: ['@event_dispatcher']
-    tags:
-      - { name: common_console_command }
-  command.acsf.cron_create:
-    class: Acquia\Console\Acsf\Command\AcsfCronCreate
-    public: true
-    arguments: ['@event_dispatcher', '@platform_command_executioner']
-    tags:
-      - { name: common_console_command }
-  command.acsf.cron_check:
-    class: Acquia\Console\Acsf\Command\AcsfCronCheck
     public: true
     arguments: ['@event_dispatcher']
     tags:

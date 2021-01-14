@@ -55,4 +55,5 @@ class AcsfDbBackupDeleteHelper extends AcsfCommandBase {
 
     return $task_ids;
   }
+
 }

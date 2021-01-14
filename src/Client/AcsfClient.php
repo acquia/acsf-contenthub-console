@@ -128,7 +128,7 @@ class AcsfClient extends Client {
    * @param int $site_id
    *   The site id.
    * @param array $options
-   *   Request parameters
+   *   Request parameters.
    *
    * @return array
    *   Data derived from the response body.

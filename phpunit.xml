@@ -12,7 +12,6 @@
     <testsuites>
         <testsuite name="ACSF Console Library">
             <directory suffix="Test.php">tests/Command</directory>
-            <directory suffix="Test.php">tests/Unit</directory>
         </testsuite>
     </testsuites>
 
