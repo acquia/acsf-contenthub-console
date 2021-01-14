@@ -28,7 +28,7 @@ use Symfony\Component\Process\Process;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
- * Class AcquiaCloudPlatform
+ * Class AcquiaCloudPlatform.
  *
  * @package Acquia\Console\Acsf\Platform
  */
@@ -70,7 +70,7 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
    * @param \Acquia\Console\Cloud\Client\AcquiaCloudClientFactory $aceFactory
    *   The Acquia Cloud client factory service.
    * @param \Acquia\Console\Acsf\Client\AcsfClientFactory $acsfFactory
-   *   The Acquia Cloud Site Factory client factory service
+   *   The Acquia Cloud Site Factory client factory service.
    * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $dispatcher
    *   The event dispatcher service.
    */
@@ -264,7 +264,8 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
     foreach ($this->getAcsfClient()->listSites() as $site) {
       $sites[$site['domain']] = [
         'uri' => $this->prefixDomain($site['domain'], $site['id']),
-        'platform_id' => static::getPlatformId()];
+        'platform_id' => static::getPlatformId()
+];
     }
     return $sites;
   }
@@ -286,7 +287,6 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
     return $prefix . $domain;
   }
 
-
   /**
    * Compares the provided uri with the acsf site list.
    *
@@ -299,7 +299,7 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
   protected function isValidUri(string $uri): bool {
     $sites = $this->getAcsfClient()->listSites();
     // Fix for issue arisen from protocol attached to uri.
-    $sites_uri = array_map(function($site) {
+    $sites_uri = array_map(function ($site) {
       // Attach protocol to the domain for each site.
       return $this->prefixDomain($site['domain'], $site['id']);
     }, $sites);

@@ -28,7 +28,7 @@ class AcsfDatabaseBackupCreateTest extends AcsfDatabaseTestBase {
    *
    * @param array $sites
    *   Contains site id and site name.
-   * @param $task_id int
+   * @param int $task_id
    *   Contains task id.
    *
    * @dataProvider databaseBackupProvider

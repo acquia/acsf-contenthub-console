@@ -9,7 +9,7 @@ use EclipseGc\CommonConsole\Event\GetPlatformTypesEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
- * Class PlatformSubscriberACSF
+ * Class PlatformSubscriberACSF.
  *
  * @package Acquia\Console\Acsf\EventSubscriber\Platform
  */
