@@ -69,7 +69,7 @@ class AcsfPlatformConfigHttpProtocol implements EventSubscriberInterface {
     $config = $event->getConfig();
     $platform_type = $config->get('platform.type');
 
-    if (!in_array($platform_type, $this->platform_types, TRUE)) {
+    if (!in_array($platform_type, $this->platformTypes, TRUE)) {
       return;
     }
 
