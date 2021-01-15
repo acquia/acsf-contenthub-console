@@ -19,14 +19,14 @@ class AcsfClient extends Client {
    *
    * @param string $username
    *   Acsf username.
-   * @param $api_key
+   * @param string $api_key
    *   Acsf api key.
    * @param \Psr\Log\LoggerInterface $logger
    *   The symfony console logger.
    * @param array $config
    *   Client configuration.
    */
-  public function __construct(string $username, $api_key, LoggerInterface $logger, array $config = []) {
+  public function __construct(string $username, string $api_key, LoggerInterface $logger, array $config = []) {
     $this->logger = $logger;
 
     $default_conf = [
@@ -109,8 +109,8 @@ class AcsfClient extends Client {
    *
    * @param string $site_id
    *   The site id.
-   * @param $options
-   *   Request parameters
+   * @param array $options
+   *   Request parameters.
    *
    * @return array
    *   Data derived from the response body.

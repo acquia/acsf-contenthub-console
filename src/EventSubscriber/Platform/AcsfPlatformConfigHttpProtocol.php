@@ -26,7 +26,7 @@ class AcsfPlatformConfigHttpProtocol implements EventSubscriberInterface {
    * @var array
    *   Platform types.
    */
-  protected $platform_types = [
+  protected $platformTypes = [
     'Acquia Cloud Site Factory'
   ];
 
@@ -49,6 +49,7 @@ class AcsfPlatformConfigHttpProtocol implements EventSubscriberInterface {
    * PlatformConfigAppFinderCloud constructor.
    *
    * @param \Acquia\Console\Acsf\Client\AcsfClientFactory $acsfFactory
+   *   Acsf Factory.
    */
   public function __construct(AcsfClientFactory $acsfFactory) {
     $this->acsfFactory = $acsfFactory;

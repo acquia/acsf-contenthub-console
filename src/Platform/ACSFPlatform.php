@@ -142,6 +142,7 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
    *   The Acquia cloud client factory.
    *
    * @return \Symfony\Component\Console\Question\ChoiceQuestion
+   *   ChoiceQuestion object.
    */
   public static function getApplicationQuestion(Config $config, AcquiaCloudClientFactory $factory) {
     $client = $factory->fromCredentials($config->get(AcquiaCloudPlatform::ACE_API_KEY), $config->get(AcquiaCloudPlatform::ACE_API_SECRET));
@@ -163,9 +164,12 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
    * Creates question for available environments for the selected application.
    *
    * @param \Consolidation\Config\Config $config
+   *   Config object.
    * @param \Acquia\Console\Cloud\Client\AcquiaCloudClientFactory $factory
+   *   Acquia Cloud Client Factory object.
    *
    * @return \Symfony\Component\Console\Question\ChoiceQuestion
+   *   Choice question object.
    */
   public static function getEnvironmentQuestion(Config $config, AcquiaCloudClientFactory $factory) {
     $client = $factory->fromCredentials($config->get(AcquiaCloudPlatform::ACE_API_KEY), $config->get(AcquiaCloudPlatform::ACE_API_SECRET));
@@ -242,6 +246,7 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
    * Gets an Ace Client for this platform.
    *
    * @return \AcquiaCloudApi\Connector\Client
+   *   Ace Client object.
    */
   public function getAceClient() : Client {
     return $this->aceFactory->fromCredentials($this->get(AcquiaCloudPlatform::ACE_API_KEY), $this->get(AcquiaCloudPlatform::ACE_API_SECRET));
@@ -251,6 +256,7 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
    * Gets an AcsfClient for this platform.
    *
    * @return \Acquia\Console\Acsf\Client\AcsfClient
+   *   Acsf Client object.
    */
   public function getAcsfClient() : AcsfClient {
     return $this->acsfFactory->fromCredentials($this->get(self::SITEFACTORY_USER), $this->get(self::SITEFACTORY_TOKEN), $this->get(self::SITEFACTORY_URL));
