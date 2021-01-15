@@ -14,9 +14,17 @@
             <directory suffix="Test.php">tests/Command</directory>
         </testsuite>
     </testsuites>
-
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">./src</directory>
+            <exclude>
+                <directory>./vendor</directory>
+            </exclude>
+        </whitelist>
+    </filter>
     <logging>
         <log type="coverage-html" target="build/coverage" />
+        <log type="coverage-xml" target="infection/coverage-xml"/>
         <log type="coverage-clover" target="build/logs/clover.xml" />
     </logging>
 
