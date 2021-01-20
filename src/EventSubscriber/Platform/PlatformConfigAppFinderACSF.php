@@ -20,7 +20,7 @@ class PlatformConfigAppFinderACSF extends PlatformConfigAppFinderCloud {
    * @var array
    *   Platform types.
    */
-  protected $platform_types = [
+  protected $platformTypes = [
     'Acquia Cloud Site Factory',
   ];
 

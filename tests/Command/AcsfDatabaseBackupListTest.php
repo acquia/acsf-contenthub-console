@@ -6,7 +6,6 @@ use Acquia\Console\Acsf\Command\AcsfDatabaseBackupCreate;
 use Acquia\Console\Acsf\Command\AcsfDatabaseBackupList;
 use Acquia\Console\Acsf\Platform\ACSFPlatform;
 use EclipseGc\CommonConsole\PlatformInterface;
-use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\Prophecy\ObjectProphecy;
 

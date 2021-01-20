@@ -6,7 +6,6 @@ use Acquia\Console\Acsf\Command\AcsfDatabaseBackupCreate;
 use Acquia\Console\Acsf\Command\AcsfDatabaseBackupDelete;
 use Acquia\Console\Acsf\Platform\ACSFPlatform;
 use EclipseGc\CommonConsole\PlatformInterface;
-use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\Prophecy\ObjectProphecy;
 
@@ -28,14 +27,14 @@ class AcsfDatabaseBackupDeleteTest extends AcsfDatabaseTestBase {
    *   Contains site id and site name.
    * @param int $task_id
    *   Contains task id.
-   * @param $backup_list
+   * @param array $backup_list
    *   Contains backup information.
    *
    * @dataProvider databaseBackupProvider
    *
    * @throws \Exception
    */
-  public function testAcsfDatabaseBackupDelete($sites, $task_id, $backup_list): void {
+  public function testAcsfDatabaseBackupDelete(array $sites, int $task_id, array $backup_list): void {
     $delete_backup_command = new AcsfDatabaseBackupDelete(
       $this->getDispatcher(),
       AcsfDatabaseBackupCreate::getDefaultName()

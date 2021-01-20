@@ -6,7 +6,6 @@ use Acquia\Console\Acsf\Command\AcsfDatabaseBackupCreate;
 use Acquia\Console\Acsf\Platform\ACSFPlatform;
 use Acquia\Console\Cloud\Tests\Command\CommandTestHelperTrait;
 use EclipseGc\CommonConsole\PlatformInterface;
-use PHPUnit\Framework\MockObject\MockObject;
 use Prophecy\Argument;
 use Prophecy\Prophecy\ObjectProphecy;
 
@@ -35,7 +34,7 @@ class AcsfDatabaseBackupCreateTest extends AcsfDatabaseTestBase {
    *
    * @throws \Exception
    */
-  public function testAcsfDatabaseBackupCreate($sites, $task_id) {
+  public function testAcsfDatabaseBackupCreate(array $sites, int $task_id) {
     $backup_create_command = new AcsfDatabaseBackupCreate(
       $this->getDispatcher(),
       AcsfDatabaseBackupCreate::getDefaultName()
@@ -72,14 +71,21 @@ class AcsfDatabaseBackupCreateTest extends AcsfDatabaseTestBase {
     $this->assertStringContainsString('Create database backup for site: test-2...', $command_tester->getDisplay());
     $this->assertEquals(0, $command_tester->getStatusCode());
 
-    $command_tester = $this->doRunCommand($backup_create_command, [], ['--all' => TRUE, '--wait' => 12]);
+    $command_tester = $this->doRunCommand($backup_create_command, [], [
+      '--all' => TRUE,
+      '--wait' => 12
+    ]);
     $this->assertStringContainsString("Create database backup for site: test-1...", $command_tester->getDisplay());
     $this->assertStringContainsString("Ping ACSF about pending tasks...", $command_tester->getDisplay());
     $this->assertStringContainsString("Task with id: 123123 completed successfully.", $command_tester->getDisplay());
     $this->assertEquals(0, $command_tester->getStatusCode());
 
     $backup_create_command->addPlatform('test', $this->getPlatform($args));
-    $command_tester = $this->doRunCommand($backup_create_command, [], ['--all' => TRUE, '--wait' => 12, '--silent' => TRUE]);
+    $command_tester = $this->doRunCommand($backup_create_command, [], [
+      '--all' => TRUE,
+      '--wait' => 12,
+      '--silent' => TRUE
+    ]);
     $this->assertEquals(0, $command_tester->getStatusCode());
   }
 
