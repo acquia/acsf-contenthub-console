@@ -10,7 +10,7 @@
          colors="true">
 
     <testsuites>
-        <testsuite name="ACSF Console Library">
+        <testsuite name="ACSF Content Hub Console Library">
             <directory suffix="Test.php">tests/Command</directory>
         </testsuite>
     </testsuites>

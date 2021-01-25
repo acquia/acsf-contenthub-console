@@ -1,10 +1,10 @@
 {
-    "name": "acquia/acsf-console",
+    "name": "acquia/acsf-contenthub-console",
     "description": "A package providing Acquia Cloud Site Factory commands for the CommonConsole command line interface.",
     "type": "project",
     "license": "GPL-2.0-or-later",
     "require": {
-        "acquia/cloud-console": "dev-main"
+        "acquia/cloud-contenthub-console": "dev-main"
     },
     "autoload": {
         "psr-4": {
