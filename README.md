@@ -5,7 +5,8 @@ Site Factory subscription.
 # Installation
 Install the package with the latest version of composer:
 
-    composer require acquia/acsf-contenthub-console
+    $composer require acquia/acsf-contenthub-console
+    $composer install
 
 Notice that you have to install those packages in your codebase deployed to Acquia Site Factory and also in your local 
 computer so that you can execute the commands in your local terminal but they will be executed in ACSF. 
