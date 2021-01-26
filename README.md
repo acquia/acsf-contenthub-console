@@ -11,7 +11,7 @@ Install the package with the latest version of composer:
 Notice that you have to install those packages in your codebase deployed to Acquia Site Factory and also in your local 
 computer so that you can execute the commands in your local terminal but they will be executed in ACSF. 
 
-# Create An Site Factory Platform
+# Create A Site Factory Platform
 
 In order for this tool to execute commands remotely on your Acquia Site Factory Platform, you would need to first create a 
 platform with the following command:
@@ -23,7 +23,7 @@ platform will be what you will use later to point to when executing commands.
 
 When the command ask you to choose an application, you can select multiple ones separated by commas.    
     
-    ./vendor/bin/commoncli pc                                                                          ✔  10192  13:25:07
+    ./vendor/bin/commoncli pc
     This command will step you through the process of creating a new platform on which to perform common console commands.
     Platform Type:
       [0] SSH
@@ -77,7 +77,7 @@ When the command ask you to choose an application, you can select multiple ones 
 # Usage
 The following are some of the commands that are available to you to be used once deployed to Acquia Site Factory:
 
-    ./vendor/bin/commoncli                                                                             ✔  10193  13:26:37
+    ./vendor/bin/commoncli 
     CommonConsole 0.0.1
     
     Usage:
