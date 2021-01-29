@@ -129,8 +129,6 @@ This command will execute a database creation in all sites in the "ACSF Test Pla
 
 ## Copyright and license
 
-Acquia Commerce Manager Drupal module
-
 Copyright &copy; 2021 Acquia Inc.
 
 This program is free software; you can redistribute it and/or modify
