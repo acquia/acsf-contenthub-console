@@ -11,7 +11,7 @@
         }
     ],
     "require": {
-        "acquia/cloud-contenthub-console": "dev-main"
+        "acquia/cloud-contenthub-console": "^1.0"
     },
     "autoload": {
         "psr-4": {
