@@ -270,7 +270,7 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
   public function getPlatformSites(): array {
     $sites = [];
     foreach ($this->getAcsfClient()->listSites() as $site) {
-      if (in_array($site['domain'],$this->get(self::EXCLUDED_SITES))) {
+      if (in_array($site['domain'], $this->get(self::EXCLUDED_SITES))) {
         continue;
       }
       $sites[$site['domain']] = [
