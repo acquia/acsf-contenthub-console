@@ -44,6 +44,8 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
 
   public const SITEFACTORY_TOKEN = 'acquia.acsf.token';
 
+  public const EXCLUDED_SITES = 'acquia.cloud.environment.exclude';
+
   /**
    * The Acquia Cloud Client Factory object.
    *
@@ -268,10 +270,13 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
   public function getPlatformSites(): array {
     $sites = [];
     foreach ($this->getAcsfClient()->listSites() as $site) {
+      if (in_array($site['domain'],$this->get(self::EXCLUDED_SITES))) {
+        continue;
+      }
       $sites[$site['domain']] = [
         'uri' => $this->prefixDomain($site['domain'], $site['id']),
         'platform_id' => static::getPlatformId()
-];
+      ];
     }
     return $sites;
   }
