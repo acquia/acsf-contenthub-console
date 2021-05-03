@@ -8,6 +8,7 @@ use Acquia\Console\Cloud\Client\AcquiaCloudClientFactory;
 use Acquia\Console\Cloud\Platform\AcquiaCloudPlatform;
 use AcquiaCloudApi\Connector\Client;
 use AcquiaCloudApi\Endpoints\Applications;
+use AcquiaCloudApi\Endpoints\CloudApiBase;
 use AcquiaCloudApi\Endpoints\Environments;
 use Consolidation\Config\Config;
 use Consolidation\Config\ConfigInterface;
@@ -22,10 +23,13 @@ use Symfony\Component\Console\Exception\LogicException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
+use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Question\Question;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Process\Process;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Yaml\Exception\ParseException;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Class AcquiaCloudPlatform.
@@ -44,7 +48,10 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
 
   public const SITEFACTORY_TOKEN = 'acquia.acsf.token';
 
-  public const INCLUDED_SITES = 'acquia.cloud.environment.include';
+  public const PLATFORM_LOCATION = [
+    '.commonconsole',
+    'platforms',
+  ];
 
   /**
    * The Acquia Cloud Client Factory object.
@@ -188,6 +195,14 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
    * {@inheritdoc}
    */
   public function execute(Command $command, InputInterface $input, OutputInterface $output) : int {
+    if ($input->getOption('group') && $input->getOption('uri')) {
+      $helper = $command->getHelper('question');
+      $question = new ConfirmationQuestion('You have provided both the options, group as well as uri. We will ignore the uri option. Do you want to proceed (y/n)?', true);
+      if (!$helper->ask($input, $output, $question)) {
+        return 1;
+      }
+    }
+
     $aceClient = $this->getAceClient();
     $environments = new Environments($aceClient);
     $env_id = $this->get(AcquiaCloudPlatform::ACE_ENVIRONMENT_NAME);
@@ -198,10 +213,22 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
     $output->writeln(sprintf("Attempting to execute requested command in environment: %s", $environment->uuid));
     $commands = [];
 
-    if ($input->hasOption('uri') && $uri = $input->getOption('uri')) {
+    $sites = $this->getPlatformSites();
+    if (!$sites) {
+      $output->writeln('<warning>No sites available. Exiting...</warning>');
+      return 1;
+    }
+
+    if ($input->hasOption('group') && $group_name = $input->getOption('group')) {
+      $sites = $this->filterSitesByGroup($group_name, $sites, $output);
+      if (is_int($sites)) {
+        return $sites;
+      }
+    }
+    elseif ($input->hasOption('uri') && $uri = $input->getOption('uri')) {
       if (!$this->isValidUri($uri)) {
         $output->writeln("<error>The provided uri '$uri' was invalid. There's no such acsf site.</error>");
-        return 1;
+        return 2;
       }
       $sites = [$uri];
       $included_sites = $this->get(self::INCLUDED_SITES);
@@ -283,8 +310,9 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
    */
   public function getPlatformSites(): array {
     $sites = [];
-    foreach ($this->getAcsfClient()->listSites() as $site) {
+    foreach ($this->getAcsfClient()->listSites() as $key => $site) {
       $sites[$site['domain']] = [
+        'id' => $site['id'],
         'uri' => $this->prefixDomain($site['domain'], $site['id']),
         'platform_id' => static::getPlatformId(),
       ];
@@ -326,6 +354,64 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
       return $this->prefixDomain($site['domain'], $site['id']);
     }, $sites);
     return in_array($uri, $sites_uri, TRUE);
+  }
+
+  /**
+   * Fetch the location of the platform group file.
+   *
+   * @return string
+   *   Grouping file path.
+   */
+  protected function groupingSitesFilePath(): string {
+    $alias = $this->getAlias();
+    $dir_parts = static::PLATFORM_LOCATION;
+    array_unshift($dir_parts, getenv('HOME'));
+    $file = implode(DIRECTORY_SEPARATOR, $dir_parts) . "/{$alias}-groups.yml";
+
+    return $file;
+  }
+
+  /**
+   * Filter list of sites via group sites.
+   *
+   * @param string $group_name
+   *   Platform grouping sites placeholder.
+   * @param array $sites
+   *   Platform sites.
+   * @param OutputInterface $output
+   *   Output stream.
+   *
+   * @return array|int
+   *   Array containing filtered list of sites.
+   */
+  protected function filterSitesByGroup(string $group_name, array $sites, OutputInterface $output) {
+    $group_file = $this->groupingSitesFilePath();
+    try {
+      $file = Yaml::parseFile($group_file);
+    }
+    catch (ParseException $exception) {
+      $output->writeln('<error>Unable to parse the YAML ' . $exception->getMessage() . '</error>', );
+      return 2;
+    }
+
+    if (!isset($file[$group_name])) {
+      $output->writeln('<error>Group name doesn\'t exists.</error>');
+      return 3;
+    }
+    elseif (empty($file[$group_name])) {
+      $output->writeln('<warning>No sites available in the groups. Exiting...</warning>');
+      return 4;
+    }
+
+    foreach ($sites as $key => $site) {
+      if (!in_array($site['id'], $file[$group_name])) {
+        unset($sites[$key]);
+        continue;
+      }
+    }
+
+    $sites = array_column($sites, 'uri');
+    return $sites;
   }
 
 }
