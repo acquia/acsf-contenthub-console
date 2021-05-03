@@ -44,6 +44,8 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
 
   public const SITEFACTORY_TOKEN = 'acquia.acsf.token';
 
+  public const INCLUDED_SITES = 'acquia.cloud.environment.include';
+
   /**
    * The Acquia Cloud Client Factory object.
    *
@@ -195,12 +197,21 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
     [$application] = explode('.', $url);
     $output->writeln(sprintf("Attempting to execute requested command in environment: %s", $environment->uuid));
     $commands = [];
+
     if ($input->hasOption('uri') && $uri = $input->getOption('uri')) {
       if (!$this->isValidUri($uri)) {
         $output->writeln("<error>The provided uri '$uri' was invalid. There's no such acsf site.</error>");
         return 1;
       }
       $sites = [$uri];
+      $included_sites = $this->get(self::INCLUDED_SITES);
+      if (!empty($included_sites)) {
+        $sites = array_intersect($sites, $included_sites);
+        if (empty($sites)) {
+          $output->writeln("<error>The provided uri $uri doesn't exists in the included sites.</error>");
+          return 1;
+        }
+      }
     }
     else {
       $sites = $this->getPlatformSites();
@@ -209,6 +220,14 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
         return 2;
       }
       $sites = array_column($sites, 'uri');
+      $included_sites = $this->get(self::INCLUDED_SITES);
+      if (!empty($included_sites)) {
+        $sites = array_intersect($sites, $included_sites);
+        if (empty($sites)) {
+          $output->writeln('<warning>Included sites are invalid. Exiting...</warning>');
+          return 1;
+        }
+      }
     }
 
     $vendor_path = $this->get('acquia.cloud.environment.vendor_paths');
