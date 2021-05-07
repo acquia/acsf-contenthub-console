@@ -8,7 +8,6 @@ use Acquia\Console\Cloud\Client\AcquiaCloudClientFactory;
 use Acquia\Console\Cloud\Platform\AcquiaCloudPlatform;
 use AcquiaCloudApi\Connector\Client;
 use AcquiaCloudApi\Endpoints\Applications;
-use AcquiaCloudApi\Endpoints\CloudApiBase;
 use AcquiaCloudApi\Endpoints\Environments;
 use Consolidation\Config\Config;
 use Consolidation\Config\ConfigInterface;
@@ -197,7 +196,7 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
   public function execute(Command $command, InputInterface $input, OutputInterface $output) : int {
     if ($input->getOption('group') && $input->getOption('uri')) {
       $helper = $command->getHelper('question');
-      $question = new ConfirmationQuestion('You have provided both the options, group as well as uri. We will ignore the uri option. Do you want to proceed (y/n)?', true);
+      $question = new ConfirmationQuestion('You have provided both the options, group as well as uri. We will ignore the uri option. Do you want to proceed (y/n)?', TRUE);
       if (!$helper->ask($input, $output, $question)) {
         return 1;
       }
@@ -216,19 +215,19 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
     $sites = $this->getPlatformSites();
     if (!$sites) {
       $output->writeln('<warning>No sites available. Exiting...</warning>');
-      return 1;
+      return 2;
     }
 
     if ($input->hasOption('group') && $group_name = $input->getOption('group')) {
       $sites = $this->filterSitesByGroup($group_name, $sites, $output);
       if (is_int($sites)) {
-        return $sites;
+        return 3;
       }
     }
     elseif ($input->hasOption('uri') && $uri = $input->getOption('uri')) {
       if (!$this->isValidUri($uri)) {
         $output->writeln("<error>The provided uri '$uri' was invalid. There's no such acsf site.</error>");
-        return 2;
+        return 4;
       }
       $sites = [$uri];
       $included_sites = $this->get(self::INCLUDED_SITES);
@@ -391,16 +390,16 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
     }
     catch (ParseException $exception) {
       $output->writeln('<error>Unable to parse the YAML ' . $exception->getMessage() . '</error>', );
-      return 2;
+      return 1;
     }
 
     if (!isset($file[$group_name])) {
       $output->writeln('<error>Group name doesn\'t exists.</error>');
-      return 3;
+      return 2;
     }
     elseif (empty($file[$group_name])) {
       $output->writeln('<warning>No sites available in the groups. Exiting...</warning>');
-      return 4;
+      return 3;
     }
 
     foreach ($sites as $key => $site) {
