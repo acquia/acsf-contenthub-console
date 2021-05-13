@@ -6,6 +6,7 @@ use Acquia\Console\Acsf\Client\AcsfClient;
 use Acquia\Console\Acsf\Client\AcsfClientFactory;
 use Acquia\Console\Cloud\Client\AcquiaCloudClientFactory;
 use Acquia\Console\Cloud\Platform\AcquiaCloudPlatform;
+use Acquia\Console\Helpers\Command\PlatformGroupTrait;
 use AcquiaCloudApi\Connector\Client;
 use AcquiaCloudApi\Endpoints\Applications;
 use AcquiaCloudApi\Endpoints\Environments;
@@ -22,6 +23,7 @@ use Symfony\Component\Console\Exception\LogicException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
+use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Question\Question;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Process\Process;
@@ -35,6 +37,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, PlatformDependencyInjectionInterface {
 
   use PlatformArgumentInjectionTrait;
+  use PlatformGroupTrait;
 
   const PLATFORM_NAME = "Acquia Cloud Site Factory";
 
@@ -196,22 +199,38 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
     [$application] = explode('.', $url);
     $output->writeln(sprintf("Attempting to execute requested command in environment: %s", $environment->uuid));
     $commands = [];
-    if ($input->hasOption('uri') && $uri = $input->getOption('uri')) {
-      if (!$this->isValidUri($uri)) {
-        $output->writeln("<error>The provided uri '$uri' was invalid. There's no such acsf site.</error>");
-        return 1;
-      }
-      $sites = [
-        $uri
-      ];
+
+    $sites = $this->getPlatformSites();
+    if (!$sites) {
+      $output->writeln('<warning>No sites available. Exiting...</warning>');
+      return 1;
     }
-    else {
-      $sites = $this->getPlatformSites();
-      if (!$sites) {
-        $output->writeln('<warning>No sites available. Exiting...</warning>');
+
+    $group_name = $input->getOption('group');
+    $uri = $input->getOption('uri');
+
+    if ($group_name && $uri) {
+      $helper = $command->getHelper('question');
+      $question = new ConfirmationQuestion('You have provided both the options, group as well as uri. We will ignore the uri option. Do you want to proceed (y/n)?', TRUE);
+      if (!$helper->ask($input, $output, $question)) {
         return 2;
       }
-      $sites = array_column($sites, 'uri');
+    }
+
+    if ($group_name) {
+      $sites = $this->filterSitesByGroup($group_name, $sites, $output);
+      if (empty($sites)) {
+        return 3;
+      }
+    }
+    $sites = array_column($sites, 'uri');
+
+    if (!$group_name && $uri) {
+      if (!$this->isValidUri($uri)) {
+        $output->writeln("<error>The provided uri '$uri' was invalid. There's no such acsf site.</error>");
+        return 4;
+      }
+      $sites = [$uri];
     }
 
     $vendor_path = $this->get('acquia.cloud.environment.vendor_paths');
@@ -269,9 +288,10 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
     $sites = [];
     foreach ($this->getAcsfClient()->listSites() as $site) {
       $sites[$site['domain']] = [
+        'id' => $site['id'],
         'uri' => $this->prefixDomain($site['domain'], $site['id']),
         'platform_id' => static::getPlatformId()
-];
+      ];
     }
     return $sites;
   }
