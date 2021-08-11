@@ -3,6 +3,7 @@
 namespace Acquia\Console\Acsf\Command;
 
 use Acquia\Console\Acsf\Platform\ACSFPlatform;
+use Acquia\Console\Helpers\Command\PlatformGroupTrait;
 use EclipseGc\CommonConsole\Platform\PlatformCommandTrait;
 use EclipseGc\CommonConsole\PlatformCommandInterface;
 use Symfony\Component\Console\Command\Command;
@@ -18,6 +19,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 abstract class AcsfCommandBase extends Command implements PlatformCommandInterface {
 
   use PlatformCommandTrait;
+  use PlatformGroupTrait;
 
   /**
    * Acsf client.

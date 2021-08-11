@@ -45,6 +45,76 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
       return 1;
     }
 
+    $sites = $this->sitesFiltering($input, $output, $sites);
+    if (is_int($sites)) {
+      return $sites;
+    }
+
+    $task_ids = [];
+    foreach ($sites as $site_id => $site) {
+      $output->writeln("Create database backup for site: $site...");
+      $task_id = $this->createAcsfSiteBackup($site_id, $site);
+      if (!$task_id) {
+        $output->writeln('<error>Failed to queue task for creating db backup.</error>');
+        return 3;
+      }
+
+      $task_ids[] = $task_id;
+    }
+
+    if (!$task_ids) {
+      $output->writeln('<error>Cannot get task ids for database backup creation.</error>');
+      return 4;
+    }
+
+    $wait = $input->hasOption('wait') ? $input->getOption('wait') : NULL;
+    if ($wait && $wait < 10) {
+      $output->writeln('<error>Input of wait option must be higher than 10 seconds.</error>');
+      return 5;
+    }
+
+    if ($input->hasOption('silent') && $input->getOption('silent') && $wait) {
+      $success = $this->wait($task_ids, $wait);
+      return $success ? 0 : 6;
+    }
+
+    if ($wait) {
+      $success = $this->waitInteractive($task_ids, $output, $wait);
+      if (!$success) {
+        $output->writeln('<warning>Some of the backups not created yet. Terminating...</warning>');
+        return 7;
+      }
+    }
+
+    if (!$wait) {
+      $output->writeln('Backups can take several minutes to complete for small websites, but larger websites can take much longer to complete.');
+      $output->writeln('You can check your backups on ACSF or using this CLI tool. (acsf:backup:list)');
+    }
+
+    return 0;
+  }
+
+  /**
+   * Fitler platform sites via groups and other options.
+   *
+   * @param \Symfony\Component\Console\Input\InputInterface $input
+   *   The input object.
+   * @param array $sites
+   *   Sites list.
+   *
+   * @return array|int
+   *   List of sites after filtering.
+   */
+  protected function sitesFiltering(InputInterface $input, OutputInterface $output, array $sites) {
+    $group_name = $input->getOption('group');
+    if ($group_name) {
+      $platform_id = self::getExpectedPlatformOptions()['source'];
+      $alias = $this->getPlatform('source')->getAlias();
+
+      $filter_sites = $this->filterSitesByGroup($group_name, array_keys($sites), $output, $alias, $platform_id);
+      return empty($filter_sites) ? 2 : array_intersect_key($sites, array_flip($filter_sites));
+    }
+
     if (!$input->getOption('all') && !$input->getOption('silent')) {
       do {
         $output->writeln('You are about to create a site backup for one of your ACSF sties.');
@@ -58,51 +128,10 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
       } while ($answer !== TRUE);
 
       $site_id = array_search($site, $sites, TRUE);
-      $sites = [$site_id => $site];
+      return [$site_id => $site];
     }
 
-    $task_ids = [];
-    foreach ($sites as $site_id => $site) {
-      $output->writeln("Create database backup for site: $site...");
-      $task_id = $this->createAcsfSiteBackup($site_id, $site);
-      if (!$task_id) {
-        $output->writeln('<error>Failed to queue task for creating db backup.</error>');
-        return 2;
-      }
-
-      $task_ids[] = $task_id;
-    }
-
-    if (!$task_ids) {
-      $output->writeln('<error>Cannot get task ids for database backup creation.</error>');
-      return 3;
-    }
-
-    $wait = $input->hasOption('wait') ? $input->getOption('wait') : NULL;
-    if ($wait && $wait < 10) {
-      $output->writeln('<error>Input of wait option must be higher than 10 seconds.</error>');
-      return 4;
-    }
-
-    if ($input->hasOption('silent') && $input->getOption('silent') && $wait) {
-      $success = $this->wait($task_ids, $wait);
-      return $success ? 0 : 5;
-    }
-
-    if ($wait) {
-      $success = $this->waitInteractive($task_ids, $output, $wait);
-      if (!$success) {
-        $output->writeln('<warning>Some of the backups not created yet. Terminating...</warning>');
-        return 6;
-      }
-    }
-
-    if (!$wait) {
-      $output->writeln('Backups can take several minutes to complete for small websites, but larger websites can take much longer to complete.');
-      $output->writeln('You can check your backups on ACSF or using this CLI tool. (acsf:backup:list)');
-    }
-
-    return 0;
+    return $sites;
   }
 
   /**
