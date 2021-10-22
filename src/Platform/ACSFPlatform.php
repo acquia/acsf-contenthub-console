@@ -119,11 +119,11 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
       AcquiaCloudPlatform::ACE_API_SECRET => new Question("Acquia Cloud Secret? "),
       AcquiaCloudPlatform::ACE_APPLICATION_ID => [
         'question' => [ACSFPlatform::class, 'getApplicationQuestion'],
-        'services' => ['http_client_factory.acquia_cloud']
+        'services' => ['http_client_factory.acquia_cloud'],
       ],
       AcquiaCloudPlatform::ACE_ENVIRONMENT_NAME => [
         'question' => [ACSFPlatform::class, 'getEnvironmentQuestion'],
-        'services' => ['http_client_factory.acquia_cloud']
+        'services' => ['http_client_factory.acquia_cloud'],
       ],
       // @todo Add validation to this question that includes https://
       self::SITEFACTORY_URL => new Question("Acquia Cloud Site Factory Url: "),
@@ -187,7 +187,6 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
    */
   public function execute(Command $command, InputInterface $input, OutputInterface $output) : int {
     $aceClient = $this->getAceClient();
-    $acsfClient = $this->getAcsfClient();
     $environments = new Environments($aceClient);
     $env_id = $this->get(AcquiaCloudPlatform::ACE_ENVIRONMENT_NAME);
     $environment = $environments->get($env_id);
@@ -201,9 +200,7 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
         $output->writeln("<error>The provided uri '$uri' was invalid. There's no such acsf site.</error>");
         return 1;
       }
-      $sites = [
-        $uri
-      ];
+      $sites = [$uri];
     }
     else {
       $sites = $this->getPlatformSites();
@@ -224,7 +221,7 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
 
     if ($commands) {
       $commands = implode("; ", $commands);
-      $process = Process::fromShellCommandline("ssh $sshUrl 'cd /var/www/html/$application; $commands'");
+      $process = new Process("ssh $sshUrl 'cd /var/www/html/$application; $commands'");
       return $this->runner->run($process, $this, $output);
     }
     // If no commands were passed, then exit without errors.
@@ -270,8 +267,8 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
     foreach ($this->getAcsfClient()->listSites() as $site) {
       $sites[$site['domain']] = [
         'uri' => $this->prefixDomain($site['domain'], $site['id']),
-        'platform_id' => static::getPlatformId()
-];
+        'platform_id' => static::getPlatformId(),
+      ];
     }
     return $sites;
   }
