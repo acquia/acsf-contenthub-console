@@ -208,15 +208,7 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
     $group_name = $input->getOption('group');
     $uri = $input->getOption('uri');
 
-    if ($group_name && $uri) {
-      $helper = $command->getHelper('question');
-      $question = new ConfirmationQuestion('You have provided both the options, group as well as uri. We will ignore the uri option. Do you want to proceed (y/n)?', TRUE);
-      if (!$helper->ask($input, $output, $question)) {
-        return 2;
-      }
-    }
-
-    if ($group_name) {
+    if (!$uri && $group_name) {
       $alias = $this->getAlias();
       $platform_id = self::getPlatformId();
       $sites = $this->filterSitesByGroup($group_name, $sites, $output, $alias, $platform_id);
@@ -226,7 +218,7 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
     }
     $sites = array_column($sites, 'uri');
 
-    if (!$group_name && $uri) {
+    if ($uri) {
       if (!$this->isValidUri($uri)) {
         $output->writeln("<error>The provided uri '$uri' was invalid. There's no such acsf site.</error>");
         return 4;
