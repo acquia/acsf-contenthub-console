@@ -45,7 +45,7 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
       return 1;
     }
 
-    $sites = $this->sitesFiltering($input, $output, $sites);
+    $sites = $this->filterSites($input, $output, $sites);
     if (is_int($sites)) {
       return $sites;
     }
@@ -95,7 +95,7 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
   }
 
   /**
-   * Fitler platform sites via groups and other options.
+   * Filter platform sites via groups and other options.
    *
    * @param \Symfony\Component\Console\Input\InputInterface $input
    *   The input object.
@@ -105,7 +105,7 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
    * @return array|int
    *   List of sites after filtering.
    */
-  protected function sitesFiltering(InputInterface $input, OutputInterface $output, array $sites) {
+  protected function filterSites(InputInterface $input, OutputInterface $output, array $sites) {
     $group_name = $input->getOption('group');
     if ($group_name) {
       $platform_id = self::getExpectedPlatformOptions()['source'];
