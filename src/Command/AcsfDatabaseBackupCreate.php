@@ -46,8 +46,9 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
     }
 
     $sites = $this->filterSites($input, $output, $sites);
-    if (is_int($sites)) {
-      return $sites;
+    if (empty($sites)) {
+      $output->writeln('<error>No sites found.</error>');
+      return 1;
     }
 
     $task_ids = [];
@@ -56,7 +57,7 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
       $task_id = $this->createAcsfSiteBackup($site_id, $site);
       if (!$task_id) {
         $output->writeln('<error>Failed to queue task for creating db backup.</error>');
-        return 3;
+        return 2;
       }
 
       $task_ids[] = $task_id;
@@ -64,25 +65,25 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
 
     if (!$task_ids) {
       $output->writeln('<error>Cannot get task ids for database backup creation.</error>');
-      return 4;
+      return 3;
     }
 
     $wait = $input->hasOption('wait') ? $input->getOption('wait') : NULL;
     if ($wait && $wait < 10) {
       $output->writeln('<error>Input of wait option must be higher than 10 seconds.</error>');
-      return 5;
+      return 4;
     }
 
     if ($input->hasOption('silent') && $input->getOption('silent') && $wait) {
       $success = $this->wait($task_ids, $wait);
-      return $success ? 0 : 6;
+      return $success ? 0 : 5;
     }
 
     if ($wait) {
       $success = $this->waitInteractive($task_ids, $output, $wait);
       if (!$success) {
         $output->writeln('<warning>Some of the backups not created yet. Terminating...</warning>');
-        return 7;
+        return 6;
       }
     }
 
@@ -102,17 +103,17 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
    * @param array $sites
    *   Sites list.
    *
-   * @return array|int
+   * @return array
    *   List of sites after filtering.
    */
-  protected function filterSites(InputInterface $input, OutputInterface $output, array $sites) {
+  protected function filterSites(InputInterface $input, OutputInterface $output, array $sites): array {
     $group_name = $input->getOption('group');
     if ($group_name) {
       $platform_id = self::getExpectedPlatformOptions()['source'];
       $alias = $this->getPlatform('source')->getAlias();
 
       $filter_sites = $this->filterSitesByGroup($group_name, array_keys($sites), $output, $alias, $platform_id);
-      return empty($filter_sites) ? 2 : array_intersect_key($sites, array_flip($filter_sites));
+      return empty($filter_sites) ? [] : array_intersect_key($sites, array_flip($filter_sites));
     }
 
     if (!$input->getOption('all') && !$input->getOption('silent')) {
