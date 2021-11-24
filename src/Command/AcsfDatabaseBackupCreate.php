@@ -45,20 +45,10 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
       return 1;
     }
 
-    if (!$input->getOption('all') && !$input->getOption('silent')) {
-      do {
-        $output->writeln('You are about to create a site backup for one of your ACSF sties.');
-        $helper = $this->getHelper('question');
-        $question = new ChoiceQuestion('Pick one of the following sites:', $sites);
-        $site = $helper->ask($input, $output, $question);
-
-        $output->writeln("Create database backup for site: $site");
-        $quest = new ConfirmationQuestion('Do you want to proceed?');
-        $answer = $helper->ask($input, $output, $quest);
-      } while ($answer !== TRUE);
-
-      $site_id = array_search($site, $sites, TRUE);
-      $sites = [$site_id => $site];
+    $sites = $this->filterSites($input, $output, $sites);
+    if (empty($sites)) {
+      $output->writeln('<error>No sites found.</error>');
+      return 1;
     }
 
     $task_ids = [];
@@ -103,6 +93,46 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
     }
 
     return 0;
+  }
+
+  /**
+   * Filter platform sites via groups and other options.
+   *
+   * @param \Symfony\Component\Console\Input\InputInterface $input
+   *   The input object.
+   * @param array $sites
+   *   Sites list.
+   *
+   * @return array
+   *   List of sites after filtering.
+   */
+  protected function filterSites(InputInterface $input, OutputInterface $output, array $sites): array {
+    $group_name = $input->getOption('group');
+    if ($group_name) {
+      $platform_id = self::getExpectedPlatformOptions()['source'];
+      $alias = $this->getPlatform('source')->getAlias();
+
+      $filter_sites = $this->filterSitesByGroup($group_name, array_keys($sites), $output, $alias, $platform_id);
+      return empty($filter_sites) ? [] : array_intersect_key($sites, array_flip($filter_sites));
+    }
+
+    if (!$input->getOption('all') && !$input->getOption('silent')) {
+      do {
+        $output->writeln('You are about to create a site backup for one of your ACSF sties.');
+        $helper = $this->getHelper('question');
+        $question = new ChoiceQuestion('Pick one of the following sites:', $sites);
+        $site = $helper->ask($input, $output, $question);
+
+        $output->writeln("Create database backup for site: $site");
+        $quest = new ConfirmationQuestion('Do you want to proceed?');
+        $answer = $helper->ask($input, $output, $quest);
+      } while ($answer !== TRUE);
+
+      $site_id = array_search($site, $sites, TRUE);
+      return [$site_id => $site];
+    }
+
+    return $sites;
   }
 
   /**
