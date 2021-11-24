@@ -213,7 +213,8 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
       $platform_id = self::getPlatformId();
       $sites = $this->filterSitesByGroup($group_name, $sites, $output, $alias, $platform_id);
       if (empty($sites)) {
-        return 2;
+        $output->writeln('<warning>No sites available. Exiting...</warning>');
+        return 1;
       }
     }
     $sites = array_column($sites, 'uri');
@@ -221,7 +222,7 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
     if ($uri) {
       if (!$this->isValidUri($uri)) {
         $output->writeln("<error>The provided uri '$uri' was invalid. There's no such acsf site.</error>");
-        return 3;
+        return 2;
       }
       $sites = [$uri];
     }
