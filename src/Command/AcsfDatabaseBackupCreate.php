@@ -100,6 +100,8 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
    *
    * @param \Symfony\Component\Console\Input\InputInterface $input
    *   The input object.
+   * @param \Symfony\Component\Console\Output\OutputInterface $output
+   *   Output.
    * @param array $sites
    *   Sites list.
    *
