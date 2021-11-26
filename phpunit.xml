@@ -4,7 +4,7 @@
          convertErrorsToExceptions="true"
          convertNoticesToExceptions="true"
          convertWarningsToExceptions="true"
-         defaultTestSuite="ACSF Console Library"
+         defaultTestSuite="ACSF Content Hub Console Library"
          processIsolation="false"
          stopOnFailure="false"
          colors="true">
