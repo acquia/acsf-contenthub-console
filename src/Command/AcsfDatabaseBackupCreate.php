@@ -100,6 +100,8 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
    *
    * @param \Symfony\Component\Console\Input\InputInterface $input
    *   The input object.
+   * @param \Symfony\Component\Console\Output\OutputInterface $output
+   *   Output.
    * @param array $sites
    *   Sites list.
    *
@@ -107,7 +109,7 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
    *   List of sites after filtering.
    */
   protected function filterSites(InputInterface $input, OutputInterface $output, array $sites): array {
-    $group_name = $input->getOption('group');
+    $group_name = $input->hasOption('group') ? $input->getOption('group') : '';
     if ($group_name) {
       $platform_id = self::getExpectedPlatformOptions()['source'];
       $alias = $this->getPlatform('source')->getAlias();
