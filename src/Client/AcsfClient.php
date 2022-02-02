@@ -63,7 +63,7 @@ class AcsfClient extends Client {
    *   All the existing site the user has permission to view.
    */
   public function listSites(): array {
-    $response = $this->getJsonResponseBody($this->get('sites'), 'No sites found.');
+    $response = $this->getJsonResponseBody($this->get('sites?limit=1000'), 'No sites found.');
     if (!isset($response['sites'])) {
       $this->logger->error('Unknown error occurred.');
       return [];
