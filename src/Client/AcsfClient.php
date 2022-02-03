@@ -59,11 +59,14 @@ class AcsfClient extends Client {
   /**
    * Returns all the sites from the acsf subscription.
    *
+   * @param int $limit
+   *   Query limit.
+   *
    * @return array
    *   All the existing site the user has permission to view.
    */
-  public function listSites(): array {
-    $response = $this->getJsonResponseBody($this->get('sites?limit=1000'), 'No sites found.');
+  public function listSites(int $limit = 1000): array {
+    $response = $this->getJsonResponseBody($this->get("sites?limit={$limit}"), 'No sites found.');
     if (!isset($response['sites'])) {
       $this->logger->error('Unknown error occurred.');
       return [];
