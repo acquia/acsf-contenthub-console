@@ -3,6 +3,7 @@
 namespace Acquia\Console\Acsf\Client;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\RequestOptions;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -66,7 +67,9 @@ class AcsfClient extends Client {
    *   All the existing site the user has permission to view.
    */
   public function listSites(int $limit = 1000): array {
-    $response = $this->getJsonResponseBody($this->get("sites?limit={$limit}"), 'No sites found.');
+    $response = $this->getJsonResponseBody($this->get('sites', [
+      RequestOptions::QUERY => ['limit' => $limit],
+    ]), 'No sites found.');
     if (!isset($response['sites'])) {
       $this->logger->error('Unknown error occurred.');
       return [];

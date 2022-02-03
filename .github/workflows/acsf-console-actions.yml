@@ -23,7 +23,6 @@ jobs:
       - name: Install composer dependencies
         run: |
           composer require --dev php-coveralls/php-coveralls
-          composer require --dev drupal/coder
           composer install
 
       - name: Run phpcs
