@@ -207,6 +207,7 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
 
     $group_name = $input->getOption('group');
     $uri = $input->getOption('uri');
+    $process_timeout = (int) $input->getOption('timeout');
 
     if (!$uri && $group_name) {
       $alias = $this->getAlias();
@@ -238,7 +239,7 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
     if ($commands) {
       $commands = implode("; ", $commands);
       $process = new Process("ssh $sshUrl 'cd /var/www/html/$application; $commands'");
-      return $this->runner->run($process, $this, $output);
+      return $this->runner->run($process, $this, $output, $process_timeout);
     }
     // If no commands were passed, then exit without errors.
     return 0;
