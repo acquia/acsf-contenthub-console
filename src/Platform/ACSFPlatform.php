@@ -207,7 +207,7 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
 
     $group_name = $input->getOption('group');
     $uri = $input->getOption('uri');
-    $process_timeout = (int) $input->getOption('timeout');
+    $process_timeout = $input->hasOption('timeout') && ($timeout = (int) $input->getOption('timeout')) > 3000 ? $timeout : 3000;
 
     if (!$uri && $group_name) {
       $alias = $this->getAlias();
