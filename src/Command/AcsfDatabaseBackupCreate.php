@@ -3,6 +3,7 @@
 namespace Acquia\Console\Acsf\Command;
 
 use Acquia\Console\Acsf\Client\ResponseHandlerTrait;
+use Acquia\Console\Acsf\Libs\Task;
 use Acquia\Console\Helpers\Command\PlatformCmdOutputFormatterTrait;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -40,7 +41,8 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
    * {@inheritdoc}
    */
   protected function execute(InputInterface $input, OutputInterface $output): int {
-    if (!$sites = $this->getAcsfSites()) {
+    $sites = $this->getAcsfSites();
+    if (!$sites) {
       $output->writeln('<error>No sites found.</error>');
       return 1;
     }
@@ -52,7 +54,15 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
     }
 
     $task_ids = [];
+    $already_running_tasks = $this->collectAlreadyRunningBackups(array_keys($sites));
     foreach ($sites as $site_id => $site) {
+      if (isset($already_running_tasks[$site_id])) {
+        $task_id = $already_running_tasks[$site_id];
+        $output->writeln("There is already a running backup for $site. Adding (id: $task_id) to the list of tasks...");
+        $task_ids[] = $task_id;
+        continue;
+      }
+
       $output->writeln("Create database backup for site: $site...");
       $task_id = $this->createAcsfSiteBackup($site_id, $site);
       if (!$task_id) {
@@ -234,6 +244,30 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
     }
 
     return $wait_time < 0 ? FALSE : TRUE;
+  }
+
+  /**
+   * Returns running database backup tasks filtered by site ids.
+   *
+   * @param array $site_ids
+   *   The list of site ids to filter by.
+   *
+   * @return array
+   *   The list of running tasks: site id => task id.
+   *
+   * @throws \Acquia\Console\Acsf\Libs\TaskException
+   */
+  protected function collectAlreadyRunningBackups(array $site_ids): array {
+    $backup_tasks = $this->acsfClient->getTasks()
+      ->getTasks(Task::TYPE_BACKUP);
+    $running_backups = [];
+    foreach ($backup_tasks as $task) {
+      if (!in_array($task->getSiteId(), $site_ids) || !$task->isRunning()) {
+        continue;
+      }
+      $running_backups[$task->getSiteId()] = $task->getTaskId();
+    }
+    return $running_backups;
   }
 
 }

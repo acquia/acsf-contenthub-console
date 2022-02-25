@@ -2,6 +2,8 @@
 
 namespace Acquia\Console\Acsf\Client;
 
+use Acquia\Console\Acsf\Libs\Task\TaskException;
+use Acquia\Console\Acsf\Libs\Task\Tasks;
 use GuzzleHttp\Client;
 use GuzzleHttp\RequestOptions;
 use Psr\Log\LoggerInterface;
@@ -189,6 +191,24 @@ class AcsfClient extends Client {
    */
   public function pingStatusEndpoint(string $task_id): array {
     return $this->getJsonResponseBody($this->get("wip/task/{$task_id}/status"), 'Could not get task status.');
+  }
+
+  /**
+   * Returns a list of tasks.
+   *
+   * @return \Acquia\Console\Acsf\Libs\Task\Tasks
+   *   The currently running tasks.
+   *
+   * @throws \Acquia\Console\Acsf\Libs\Task\TaskException
+   *   If the tasks cannot be retrieved that indicates a connection or server
+   *   error.
+   */
+  public function getTasks(): Tasks {
+    $tasks = $this->getJsonResponseBody($this->get('tasks'), 'Could not retrieve tasks');
+    if ($tasks) {
+      return new Tasks($tasks);
+    }
+    throw new TaskException('Tasks cannot be retrieved', TaskException::TASK_RETRIEVAL_ERROR);
   }
 
 }
