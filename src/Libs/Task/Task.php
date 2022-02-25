@@ -11,9 +11,35 @@ class Task {
   public const TYPE_DRUSH_CMD = 'drush_cmd';
   public const TYPE_VERSIONS = 'versions';
 
+  /**
+   * The task id.
+   *
+   * @var string
+   */
   private string $taskId;
+
+  /**
+   * The site id.
+   *
+   * @var string
+   */
   private string $siteId;
+
+  /**
+   * The task type.
+   *
+   * @var string
+   */
   private string $type;
+
+  /**
+   * Indicator whether the task is running or not.
+   *
+   * Warning: this can be outdated so it is advised to refresh the request at
+   * certain intervals.
+   *
+   * @var bool
+   */
   private bool $isRunning;
 
   /**

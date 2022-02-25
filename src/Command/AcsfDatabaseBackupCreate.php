@@ -57,7 +57,8 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
     $task_ids = [];
     try {
       $already_running_tasks = $this->collectAlreadyRunningBackups(array_keys($sites));
-    } catch (TaskException $e) {
+    }
+    catch (TaskException $e) {
       $output->writeln("<warning>[{$e->getCode()}] {$e->getMessage()}</warning>");
     }
 
