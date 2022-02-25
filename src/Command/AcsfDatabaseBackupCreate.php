@@ -3,7 +3,8 @@
 namespace Acquia\Console\Acsf\Command;
 
 use Acquia\Console\Acsf\Client\ResponseHandlerTrait;
-use Acquia\Console\Acsf\Libs\Task;
+use Acquia\Console\Acsf\Libs\Task\Task;
+use Acquia\Console\Acsf\Libs\Task\TaskException;
 use Acquia\Console\Helpers\Command\PlatformCmdOutputFormatterTrait;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -54,7 +55,12 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
     }
 
     $task_ids = [];
-    $already_running_tasks = $this->collectAlreadyRunningBackups(array_keys($sites));
+    try {
+      $already_running_tasks = $this->collectAlreadyRunningBackups(array_keys($sites));
+    } catch (TaskException $e) {
+      $output->writeln("<warning>[{$e->getCode()}] {$e->getMessage()}</warning>");
+    }
+
     foreach ($sites as $site_id => $site) {
       if (isset($already_running_tasks[$site_id])) {
         $task_id = $already_running_tasks[$site_id];
@@ -255,7 +261,7 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
    * @return array
    *   The list of running tasks: site id => task id.
    *
-   * @throws \Acquia\Console\Acsf\Libs\TaskException
+   * @throws \Acquia\Console\Acsf\Libs\Task\TaskException
    */
   protected function collectAlreadyRunningBackups(array $site_ids): array {
     $backup_tasks = $this->acsfClient->getTasks()
