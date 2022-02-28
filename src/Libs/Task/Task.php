@@ -35,7 +35,7 @@ class Task {
   /**
    * Indicator whether the task is running or not.
    *
-   * Warning: this can be outdated so it is advised to refresh the request at
+   * Warning: this can be outdated, so it is advised to refresh the request at
    * certain intervals.
    *
    * @var bool
@@ -45,20 +45,20 @@ class Task {
   /**
    * Constructs a new Task object.
    *
-   * @param string $taskId
+   * @param string $task_id
    *   The task id.
-   * @param string $siteId
+   * @param string $site_id
    *   The site id.
    * @param string $type
    *   The task type.
-   * @param bool $isRunning
+   * @param bool $is_running
    *   Indication whether the task is in progress.
    */
-  public function __construct(string $taskId, string $siteId, string $type, bool $isRunning) {
-    $this->taskId = $taskId;
-    $this->siteId = $siteId;
+  public function __construct(string $task_id, string $site_id, string $type, bool $is_running) {
+    $this->taskId = $task_id;
+    $this->siteId = $site_id;
     $this->type = $type;
-    $this->isRunning = $isRunning;
+    $this->isRunning = $is_running;
   }
 
   /**
