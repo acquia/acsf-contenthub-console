@@ -3,6 +3,7 @@
 namespace Acquia\Console\Acsf\Tests\Command;
 
 use Acquia\Console\Acsf\Command\AcsfDatabaseBackupCreate;
+use Acquia\Console\Acsf\Libs\Task\Tasks;
 use Acquia\Console\Acsf\Platform\ACSFPlatform;
 use Acquia\Console\Cloud\Tests\Command\CommandTestHelperTrait;
 use EclipseGc\CommonConsole\PlatformInterface;
@@ -123,6 +124,11 @@ class AcsfDatabaseBackupCreateTest extends AcsfDatabaseTestBase {
 
       $client->pingStatusEndpoint(Argument::any())
         ->willReturn($args['status'], $args['status'], $args['status'], $args['status2']);
+
+      $tasks = $this->prophesize(Tasks::class);
+      $tasks->getTasks(Argument::any())->willReturn([]);
+      $client->getTasks()
+        ->willReturn($tasks->reveal());
     };
 
     return $this->getAcsfPlatform(

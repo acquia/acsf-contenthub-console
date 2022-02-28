@@ -2,6 +2,7 @@
 
 namespace Acquia\Console\Acsf\Command;
 
+use Acquia\Console\Acsf\Libs\Task;
 use Acquia\Console\Helpers\Command\PlatformCmdOutputFormatterTrait;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
@@ -36,7 +37,8 @@ class AcsfDatabaseBackupList extends AcsfCommandBase {
    * {@inheritdoc}
    */
   protected function execute(InputInterface $input, OutputInterface $output): int {
-    if (!$sites = $this->getAcsfSites()) {
+    $sites = $this->getAcsfSites();
+    if (!$sites) {
       $output->writeln('No sites found.');
       return 1;
     }
@@ -45,6 +47,9 @@ class AcsfDatabaseBackupList extends AcsfCommandBase {
       $backups = [];
       foreach ($sites as $site_id => $site) {
         $resp = $this->acsfClient->getBackupsBySiteId($site_id);
+        if (!isset($resp['backups'])) {
+          continue;
+        }
         $backups[$site_id] = array_column($resp['backups'], 'id');
       }
       $output->writeln($this->toJsonSuccess($backups));
