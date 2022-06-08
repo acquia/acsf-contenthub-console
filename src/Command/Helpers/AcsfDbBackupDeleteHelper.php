@@ -31,7 +31,7 @@ class AcsfDbBackupDeleteHelper extends AcsfCommandBase {
   /**
    * {@inheritdoc}
    */
-  protected function execute(InputInterface $input, OutputInterface $output) {
+  protected function execute(InputInterface $input, OutputInterface $output): int {
     $backups = $input->getOption('backups');
     $task_ids = $this->deleteSiteBackups($backups);
     return $task_ids ? 0 : 1;

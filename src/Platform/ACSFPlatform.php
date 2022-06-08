@@ -238,7 +238,7 @@ class ACSFPlatform extends PlatformBase implements PlatformSitesInterface, Platf
 
     if ($commands) {
       $commands = implode("; ", $commands);
-      $process = new Process("ssh $sshUrl 'cd /var/www/html/$application; $commands'");
+      $process = Process::fromShellCommandline("ssh $sshUrl 'cd /var/www/html/$application; $commands'");
       return $this->runner->run($process, $this, $output, $process_timeout);
     }
     // If no commands were passed, then exit without errors.

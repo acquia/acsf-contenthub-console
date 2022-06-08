@@ -31,7 +31,7 @@ class AcsfDbBackupRestoreHelper extends AcsfCommandBase {
   /**
    * {@inheritdoc}
    */
-  protected function execute(InputInterface $input, OutputInterface $output) {
+  protected function execute(InputInterface $input, OutputInterface $output): int {
     $backups = $input->getOption('backups');
 
     $task_ids = $this->restoreSiteFromBackup($backups);
