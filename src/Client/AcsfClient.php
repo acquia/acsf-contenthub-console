@@ -4,8 +4,11 @@ namespace Acquia\Console\Acsf\Client;
 
 use Acquia\Console\Acsf\Libs\Task\TaskException;
 use Acquia\Console\Acsf\Libs\Task\Tasks;
-use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\RequestOptions;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -13,34 +16,28 @@ use Psr\Log\LoggerInterface;
  *
  * @package Acquia\Console\Acsf\Client
  */
-class AcsfClient extends Client {
+class AcsfClient implements ClientInterface {
 
   use ResponseHandlerTrait;
 
   /**
+   * GuzzleHttp client.
+   *
+   * @var \GuzzleHttp\ClientInterface
+   */
+  protected $httpClient;
+
+  /**
    * AcsfClient constructor.
    *
-   * @param string $username
-   *   Acsf username.
-   * @param string $api_key
-   *   Acsf api key.
    * @param \Psr\Log\LoggerInterface $logger
    *   The symfony console logger.
-   * @param array $config
-   *   Client configuration.
+   * @param \GuzzleHttp\ClientInterface $client
+   *   GuzzleClient instance.
    */
-  public function __construct(string $username, string $api_key, LoggerInterface $logger, array $config = []) {
+  public function __construct(LoggerInterface $logger, ClientInterface $client) {
     $this->logger = $logger;
-
-    $default_conf = [
-      'headers' => [
-        'Content-Type' => 'application/json',
-      ],
-      'auth' => [$username, $api_key],
-    ];
-    $config = array_merge_recursive($default_conf, $config);
-
-    parent::__construct($config);
+    $this->httpClient = $client;
   }
 
   /**
@@ -171,7 +168,7 @@ class AcsfClient extends Client {
    */
   public function __call($method, $args) {
     try {
-      return parent::__call($method, $args);
+      return $this->httpClient->__call($method, $args);
     }
     catch (\Exception $e) {
       $this->logger->error($e->getMessage());
@@ -209,6 +206,41 @@ class AcsfClient extends Client {
       return new Tasks($tasks);
     }
     throw new TaskException('Tasks cannot be retrieved', TaskException::TASK_RETRIEVAL_ERROR);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function send(RequestInterface $request, array $options = []): ResponseInterface {
+    return $this->httpClient->send($request, $options);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function sendAsync(RequestInterface $request, array $options = []): PromiseInterface {
+    return $this->httpClient->sendAsync($request, $options);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function request($method, $uri, array $options = []): ResponseInterface {
+    return $this->httpClient->request($method, $uri, $options);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function requestAsync($method, $uri, array $options = []): PromiseInterface {
+    return $this->httpClient->requestAsync($method, $uri, $options);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getConfig($option = NULL) {
+    return $this->httpClient->getConfig($option);
   }
 
 }
