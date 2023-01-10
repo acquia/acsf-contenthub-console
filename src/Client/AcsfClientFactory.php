@@ -44,7 +44,15 @@ class AcsfClientFactory {
    *   The instantiated client.
    */
   public function fromCredentials(string $username, string $api_key, string $site_name): AcsfClient {
-    return new AcsfClient($username, $api_key, $this->logger, ['base_uri' => $site_name . '/api/v1/']);
+    $config = [
+      'headers' => [
+        'Content-Type' => 'application/json',
+      ],
+      'auth' => [$username, $api_key],
+      'base_uri' => $site_name . '/api/v1/',
+    ];
+
+    return new AcsfClient($this->logger, self::getGuzzleClient($config));
   }
 
   /**

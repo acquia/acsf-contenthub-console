@@ -30,27 +30,14 @@ class AcsfClient implements ClientInterface {
   /**
    * AcsfClient constructor.
    *
-   * @param string $username
-   *   Acsf username.
-   * @param string $api_key
-   *   Acsf api key.
    * @param \Psr\Log\LoggerInterface $logger
    *   The symfony console logger.
-   * @param array $config
-   *   Client configuration.
+   * @param \GuzzleHttp\ClientInterface $client
+   *   GuzzleClient instance.
    */
-  public function __construct(string $username, string $api_key, LoggerInterface $logger, array $config = []) {
+  public function __construct(LoggerInterface $logger, ClientInterface $client) {
     $this->logger = $logger;
-
-    $default_conf = [
-      'headers' => [
-        'Content-Type' => 'application/json',
-      ],
-      'auth' => [$username, $api_key],
-    ];
-    $config = array_merge_recursive($default_conf, $config);
-
-    $this->httpClient = AcsfClientFactory::getGuzzleClient($config);
+    $this->httpClient = $client;
   }
 
   /**
