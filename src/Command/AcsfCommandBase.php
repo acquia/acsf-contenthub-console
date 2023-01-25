@@ -31,7 +31,7 @@ abstract class AcsfCommandBase extends Command implements PlatformCommandInterfa
   /**
    * The platform in hand of type ACSF.
    *
-   * @var \Acquia\Console\Acsf\Platform\ACSFPlatform
+   * @var null|\EclipseGc\CommonConsole\PlatformInterface
    */
   protected $platform;
 

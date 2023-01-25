@@ -196,7 +196,6 @@ class AcsfDatabaseBackupCreate extends AcsfCommandBase {
   protected function waitInteractive(array $task_ids, OutputInterface $output, int $wait_time): bool {
     $tasks = implode(', ', $task_ids);
     $output->writeln("<info>Waiting for the following task(s) to complete: {$tasks}</info>");
-    /** @var \Acquia\Console\Acsf\Client\AcsfClient $acsf_client */
     $successful_task = 0;
     $task_count = count($task_ids);
 
