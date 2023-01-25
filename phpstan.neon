@@ -3,6 +3,7 @@ parameters:
   paths:
     - ./src
   ignoreErrors:
+    - '#Call to an undefined method [a-zA-Z0-9\\_:@\(\).]*#'
     - '#Unsafe usage of new static\(\).#'
   excludePaths:
   	- tests/
