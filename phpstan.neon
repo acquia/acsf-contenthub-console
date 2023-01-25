@@ -1,0 +1,8 @@
+parameters:
+  level: 3
+  paths:
+    - ./src
+  ignoreErrors:
+    - '#Unsafe usage of new static\(\).#'
+  excludePaths:
+  	- tests/
