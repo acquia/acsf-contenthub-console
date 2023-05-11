@@ -8,6 +8,7 @@ use Acquia\Console\Acsf\Platform\ACSFPlatform;
 use Acquia\Console\Cloud\Tests\Command\CommandTestHelperTrait;
 use EclipseGc\CommonConsole\PlatformInterface;
 use Prophecy\Argument;
+use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 
 /**
@@ -22,6 +23,7 @@ use Prophecy\Prophecy\ObjectProphecy;
 class AcsfDatabaseBackupCreateTest extends AcsfDatabaseTestBase {
 
   use CommandTestHelperTrait;
+  use ProphecyTrait;
 
   /**
    * Test coverage for Acsf db backup operations.
